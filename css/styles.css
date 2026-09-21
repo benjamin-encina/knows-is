@@ -1,0 +1,603 @@
+/* ============================================
+   Knows-IS — Hoja de estilos personalizada
+   Se carga después de Bootstrap 5 para sobrescribir
+   sus estilos por defecto con la identidad visual
+   propia del proyecto.
+   ============================================ */
+
+:root {
+  --ink: #12141c;
+  --ink-soft: #1c1f2b;
+  --paper: #f7f7f9;
+  --paper-alt: #eef0f5;
+  --accent: #4c56e8;
+  --accent-dark: #363fc2;
+  --accent-2: #14b8a6;
+  --line: #e2e4ea;
+  --text: #1c1f2b;
+  --muted: #6b7280;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* ---------- Base ---------- */
+body {
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4, .navbar-brand, .btn {
+  font-family: var(--font-display);
+}
+
+h1, h2, h3 { color: var(--ink); letter-spacing: -0.01em; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-dark); }
+
+.section { padding: 7rem 0; }
+.section-alt { background-color: var(--paper-alt); }
+
+/* ---------- Header / Navbar ---------- */
+.site-header {
+  border-bottom: 2px solid var(--ink);
+}
+
+.navbar-tech {
+  background-color: var(--paper);
+  padding-top: 1.1rem;
+  padding-bottom: 1.1rem;
+}
+
+.navbar-tech .navbar-brand {
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-tech .navbar-brand .brand-mark {
+  color: var(--accent);
+}
+
+.navbar-tech .nav-link {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--text);
+  padding: 0.5rem 0.95rem;
+}
+
+.navbar-tech .nav-link.active,
+.navbar-tech .nav-link:hover {
+  color: var(--accent);
+}
+
+.navbar-tech .dropdown-menu {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 16px 32px -16px rgba(18, 20, 28, 0.25);
+  padding: 0.5rem;
+}
+
+.navbar-tech .dropdown-item {
+  border-radius: 6px;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.navbar-tech .dropdown-item:hover {
+  background-color: var(--paper-alt);
+  color: var(--accent);
+}
+
+.navbar-tech .nav-utility {
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 0.5rem 0.75rem;
+}
+
+.btn-tech-primary {
+  background-color: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+}
+
+.btn-tech-primary:hover {
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
+  color: #fff;
+}
+
+.btn-tech-outline {
+  background-color: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-weight: 500;
+  padding: 0.55rem 1.3rem;
+  border-radius: 8px;
+}
+
+.btn-tech-outline:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.link-tech {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.link-tech:hover { color: var(--accent); }
+
+/* ---------- Hero ---------- */
+.hero {
+  padding: 6.5rem 0 7rem;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 4vw, 3.1rem);
+  line-height: 1.1;
+  max-width: 15ch;
+}
+
+.hero p.lead {
+  color: var(--muted);
+  max-width: 46ch;
+  font-size: 1.1rem;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 2.5rem;
+  margin-top: 2.5rem;
+}
+
+.hero-stats .stat-value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.hero-stats .stat-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- Panel tipo editor de código (elemento distintivo del hero) ---------- */
+.code-panel {
+  background-color: var(--ink);
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 24px 48px -20px rgba(18, 20, 28, 0.45);
+}
+
+.code-panel .code-panel-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.code-panel .code-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #3a3d4c;
+}
+
+.code-panel pre {
+  margin: 0;
+  font-family: "Space Mono", Consolas, monospace;
+  font-size: 0.85rem;
+  color: #d7d9e3;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.code-panel .tok-key { color: #8ab4ff; }
+.code-panel .tok-str { color: var(--accent-2); }
+.code-panel .tok-com { color: #6b7280; }
+
+
+/* ---------- Hero de catálogo ---------- */
+.catalog-hero { padding: 5.5rem 0 3.5rem; text-align: center; }
+
+.catalog-hero h1 {
+  font-size: clamp(2rem, 4.2vw, 2.9rem);
+  max-width: 20ch;
+  margin: 0 auto 2.5rem;
+}
+
+.catalog-banner {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 14px;
+  padding: 2rem 2.25rem;
+  background: linear-gradient(120deg, var(--ink) 0%, var(--accent-dark) 60%, var(--accent) 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.catalog-banner .banner-eyebrow {
+  font-size: 0.85rem;
+  color: #cfd3ff;
+  margin-bottom: 0.25rem;
+}
+
+.catalog-banner .banner-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.catalog-banner .banner-discount {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+
+/* ---------- Barra de búsqueda y filtros ---------- */
+.filter-bar {
+  max-width: 900px;
+  margin: 3rem auto 0;
+  background-color: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.6rem;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.filter-bar .form-control,
+.filter-bar .form-select {
+  border: none;
+  background-color: var(--paper-alt);
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+}
+
+.filter-bar .form-control:focus,
+.filter-bar .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(76, 86, 232, 0.15);
+}
+
+.filter-bar .filter-note {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 0.3rem 0.4rem 0;
+}
+
+/* ---------- Tarjetas de curso (catálogo) ---------- */
+.course-card {
+  position: relative;
+  background-color: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.course-card .course-icon-panel {
+  position: relative;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.course-card .course-icon-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--ink);
+  opacity: 0.42;
+}
+
+.course-card .course-icon-panel i {
+  position: relative;
+  z-index: 1;
+}
+
+.course-card .course-tag {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-new {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  background-color: #fff;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.course-card .course-body { padding: 1.25rem; }
+
+.course-card .course-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.course-meta {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.course-meta dt {
+  color: var(--muted);
+  font-weight: 500;
+  display: inline;
+}
+
+.course-meta dd {
+  display: inline;
+  margin: 0 0 0 0.25rem;
+}
+
+.course-meta div + div { margin-top: 0.25rem; }
+
+.badge-tech {
+  background-color: var(--paper-alt);
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+}
+
+/* ---------- Footer ---------- */
+.footer-tech {
+  background-color: var(--ink);
+  color: #b6b9c6;
+  padding: 5rem 0 2.5rem;
+}
+
+.footer-tech h6 {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.footer-tech a { color: #b6b9c6; }
+.footer-tech a:hover { color: #fff; }
+
+.footer-tech .footer-bottom {
+  border-top: 1px solid var(--ink-soft);
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #7c8093;
+}
+
+/* ---------- Formularios (base para los módulos de autenticación / admin) ---------- */
+.form-tech label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.form-tech .form-control,
+.form-tech .form-select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+
+.form-tech .form-control:focus,
+.form-tech .form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(76, 86, 232, 0.15);
+}
+
+.form-tech .form-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+
+/* ---------- Tarjetas de autenticación (Login / Registro) ---------- */
+.auth-shell {
+  padding: 5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-card {
+  background-color: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 32px 64px -32px rgba(18, 20, 28, 0.2);
+}
+
+.auth-card.auth-card-wide { max-width: 640px; }
+
+.auth-card .auth-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.auth-card h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.auth-card p.auth-subtitle {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-bottom: 1.75rem;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* ---------- Layout de administrador (sidebar + topbar) ---------- */
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: var(--ink);
+  color: #b6b9c6;
+  padding: 1.5rem 1rem;
+}
+
+.admin-sidebar .navbar-brand {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem 1.5rem;
+}
+
+.admin-sidebar .navbar-brand .brand-mark { color: var(--accent-2); }
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  color: #b6b9c6;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.admin-nav-link:hover {
+  background-color: var(--ink-soft);
+  color: #fff;
+}
+
+.admin-nav-link.active {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.admin-nav-divider {
+  border-top: 1px solid var(--ink-soft);
+  margin: 1rem 0.85rem;
+  padding-top: 0.85rem;
+}
+
+.admin-main { flex: 1; background-color: var(--paper); min-width: 0; }
+
+.admin-topbar {
+  background-color: #fff;
+  border-bottom: 1px solid var(--line);
+  padding: 1.1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-topbar h1 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.admin-content { padding: 2rem; }
+
+.admin-card {
+  background-color: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-table thead th {
+  background-color: var(--paper-alt);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: none;
+  padding: 0.85rem 1.25rem;
+}
+
+.admin-table tbody td {
+  padding: 0.9rem 1.25rem;
+  vertical-align: middle;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background-color: var(--paper-alt);
+  color: var(--text);
+}
+
+.role-badge.role-admin { background-color: #ece9fd; color: #5b3fd1; }
+.role-badge.role-instructor { background-color: #d9f5f0; color: #0e7d6b; }
+.role-badge.role-alumno { background-color: var(--paper-alt); color: var(--text); }
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+}
+
+.status-dot.status-ok { background-color: var(--accent-2); }
+.status-dot.status-warn { background-color: #e24b4a; }
