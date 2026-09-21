@@ -3,11 +3,11 @@
    Módulo: Administrador · Cursos (Nuevo curso / Editar curso)
  
    Reglas de validación tomadas de la planilla de requerimientos:
-   - Código: requerido, texto, mínimo 3 caracteres.
+   - Código: requerido, numero , mínimo 5 caracteres.
    - Nombre: requerido, máximo 100 caracteres.
    - Descripción: opcional, máximo 500 caracteres.
    - Precio: requerido, numérico, mínimo 0 (permite decimales).
-   - Cupos: requerido, entero, mínimo 0.
+   - Cupos: requerido, entero, mínimo 25.
    - Cupo crítico: opcional, entero, mínimo 0.
      (Regla agregada por el equipo: no puede ser mayor que Cupos,
      ya que no tendría sentido alertar por un cupo crítico más alto
