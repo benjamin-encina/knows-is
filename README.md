@@ -1,34 +1,66 @@
-# Knows-IS 
+# Knows-IS (React)
 
-**Plataforma web de academia tecnológica**
+Migración de la plataforma de academia tecnológica a **React + Vite**.
+Proyecto académico — DuocUC, curso DSY1104.
 
-Knows-IS es un sitio institucional que presenta una academia de tecnología ficticia, con vista pública para visitantes y un panel de administración para gestionar cursos y usuarios.
+Esta versión contiene **solo la base**: arranque del proyecto (sección 1) y componentes
+comunes, layouts y rutas (sección 2). Las páginas están como provisorias
+(`PaginaPendiente`) para que ninguna ruta dé 404 mientras se migran.
 
----
+## Cómo ejecutarlo
 
-## Características
+```bash
+npm install      # solo la primera vez (genera package-lock.json: súbanlo al repo)
+npm run dev      # servidor de desarrollo → http://localhost:5173
+npm run build    # compila a /dist para comprobar que no hay errores
+```
 
-- **Sitio institucional** — Home, Registro & Login de Usuarios, Panel de Administración de Cursos con Formulario
-- **Validación de formularios** en JavaScript puro (login, registro, contacto, formularios de admin)
-
----
-
-## Stack técnico
-
-| Capa | Tecnología |
-|---|---|
-| Frontend | HTML5, CSS3, JavaScript |
-| UI Framework | Bootstrap 5 (CDN) |
-| Tipografías | Space Grotesk (títulos) · Inter (cuerpo) |
-
-
----
+Requiere Node 18 o superior.
 
 ## Estructura
 
-El proyecto con su iteración actual incluye 7 archivos HTML/CSS/JS, con una hoja de estilos compartida (`css/styles.css`) construida sobre Bootstrap.
+```
+src/
+├── main.jsx            # Punto de entrada: Bootstrap, íconos, fuentes, estilos y router
+├── App.jsx             # TODAS las rutas del proyecto
+├── styles/styles.css   # Estilos propios (se cargan después de Bootstrap)
+├── data/               # Datos mock: cursos.js y usuarios.js (fuente única de datos)
+├── utils/              # Funciones auxiliares (formato de precio, y luego validaciones)
+├── components/         # Navbar, Footer, AdminSidebar, AdminTopbar, CourseCard...
+├── layouts/            # PublicLayout, AuthLayout, AdminLayout
+└── pages/              # Una página por ruta (admin/ para el panel)
+```
 
+## Rutas
 
----
+| Ruta | Layout | Archivo | Origen en la versión HTML |
+|---|---|---|---|
+| `/` | Público | `pages/Home.jsx` | `index.html` |
+| `/cursos` (`?categoria=`) | Público | `pages/Cursos.jsx` | nuevo |
+| `/cursos/:id` | Público | `pages/CursoDetalle.jsx` | nuevo |
+| `/nosotros` | Público | `pages/Nosotros.jsx` | nuevo |
+| `/contacto` | Público | `pages/Contacto.jsx` | nuevo |
+| `/login` | Auth | `pages/Login.jsx` | `login.html` |
+| `/registro` | Auth | `pages/Registro.jsx` | `registro.html` |
+| `/admin` | Admin | `pages/admin/AdminHome.jsx` | nuevo |
+| `/admin/cursos` | Admin | `pages/admin/AdminCursos.jsx` | `admin-cursos.html` |
+| `/admin/cursos/nuevo` y `/admin/cursos/:id/editar` | Admin | `pages/admin/AdminCursoForm.jsx` | `admin-curso-form.html` |
+| `/admin/usuarios` | Admin | `pages/admin/AdminUsuarios.jsx` | nuevo |
+| `/admin/usuarios/nuevo` y `/admin/usuarios/:id/editar` | Admin | `pages/admin/AdminUsuarioForm.jsx` | nuevo |
 
-*Proyecto académico — DuocUC, curso DSY1104.*
+## Convenciones
+
+- Componentes y páginas: archivos en **PascalCase** (`CourseCard.jsx`); funciones y datos en camelCase.
+- Un componente por archivo, con `export default`.
+- **Los datos se leen siempre desde `src/data/`**, nunca se escriben a mano en una página.
+- Los estilos van en `styles/styles.css`, reutilizando las clases existentes (`course-card`, `admin-card`, `form-tech`...).
+- No se usa JavaScript de Bootstrap: el navbar y el desplegable se controlan con `useState`.
+- Migrar una página = reemplazar el contenido de su archivo (borrando `PaginaPendiente`) y convertir el HTML a JSX:
+  `class` → `className`, `for` → `htmlFor`, etiquetas autocerradas (`<input />`), `style="..."` → `style={{ ... }}`,
+  y `<a href="x.html">` → `<Link to="/x">`.
+
+## Pendientes de decisión del equipo
+
+- Carrito: el navbar mantiene el "Cart (0)" de la versión HTML sin funcionalidad.
+- Persistencia: datos mock en memoria, `localStorage` o API conectada a Oracle.
+- Los cupos de ejemplo en `data/cursos.js` (2, 3, 15, 18, 20) son menores al mínimo de 25 que exige el formulario de curso: definir si "cupos" significa total o disponibles.
