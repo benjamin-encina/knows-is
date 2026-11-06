@@ -1,9 +1,11 @@
 import { useSearchParams } from "react-router-dom";
 import CourseCard from "../components/CourseCard";
-import { categorias, cursos, niveles } from "../data/cursos";
+import { categorias, niveles } from "../data/cursos";
+import { useCursos } from "../context/CursosContext";
 
 export default function Cursos() {
-  // Los filtros viven en la URL: /cursos?categoria=redes&nivel=Inicial&q=java
+  
+  const { cursos } = useCursos();
   const [params, setParams] = useSearchParams();
   const categoria = params.get("categoria") || "";
   const nivel = params.get("nivel") || "";

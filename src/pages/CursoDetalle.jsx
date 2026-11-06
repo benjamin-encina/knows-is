@@ -1,12 +1,14 @@
 import { Link, useParams } from "react-router-dom";
-import { cupoEnAlerta, cursos, nombreCategoria } from "../data/cursos";
+import { cupoEnAlerta, nombreCategoria } from "../data/cursos";
+import { useCursos } from "../context/CursosContext";
 import { formatearPrecio } from "../utils/formato";
 import { useAuth } from "../context/AuthContext";
 
 export default function CursoDetalle() {
   const { id } = useParams();
   const { estaLogueado } = useAuth();
-  const curso = cursos.find((c) => String(c.id) === id);
+  const { obtenerCurso } = useCursos();
+  const curso = obtenerCurso(id);
 
   if (!curso) {
     return (

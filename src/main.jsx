@@ -16,13 +16,16 @@ import "@fontsource/space-mono/400.css";
 import "./styles/styles.css";
 
 import App from "./App.jsx";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";  
+import { CursosProvider } from "./context/CursosContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <CursosProvider>
+          <App />
+        </CursosProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

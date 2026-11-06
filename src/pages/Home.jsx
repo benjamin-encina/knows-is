@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import CourseCard from "../components/CourseCard";
-import { cursos } from "../data/cursos";
+import { useCursos } from "../context/CursosContext";
 
 export default function Home() {
+  const { cursos } = useCursos();
   const destacados = cursos.filter((curso) => curso.destacado);
 
   return (
