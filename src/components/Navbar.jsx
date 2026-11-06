@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { categorias } from "../data/cursos";
+import SesionNavbar from "./SesionNavbar";
 
 const categoriasMenu = categorias.filter((c) => c.enMenu);
 
@@ -114,14 +115,7 @@ export default function Navbar() {
                 <span className="small">Cart (0)</span>
               </a>
 
-              {/* TODO (sección 4, autenticación): según la sesión, mostrar el nombre del usuario
-                  y "Cerrar sesión" en lugar de estos dos botones. */}
-              <Link to="/registro" className="btn btn-tech-outline btn-sm">
-                Crear cuenta
-              </Link>
-              <Link to="/login" className="btn btn-tech-primary btn-sm">
-                Acceder
-              </Link>
+              <SesionNavbar />
             </div>
           </div>
         </div>

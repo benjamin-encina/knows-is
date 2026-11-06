@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 
 import PublicLayout from "./layouts/PublicLayout";
 import AuthLayout from "./layouts/AuthLayout";
+import RutaAdmin from "./components/RutaAdmin";
 import AdminLayout from "./layouts/AdminLayout";
 
 import Home from "./pages/Home";
@@ -38,15 +39,17 @@ export default function App() {
         <Route path="/registro" element={<Registro />} />
       </Route>
 
-      {/* Panel de administrador */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminHome />} />
-        <Route path="cursos" element={<AdminCursos />} />
-        <Route path="cursos/nuevo" element={<AdminCursoForm />} />
-        <Route path="cursos/:id/editar" element={<AdminCursoForm />} />
-        <Route path="usuarios" element={<AdminUsuarios />} />
-        <Route path="usuarios/nuevo" element={<AdminUsuarioForm />} />
-        <Route path="usuarios/:id/editar" element={<AdminUsuarioForm />} />
+      {/* Panel de administrador (protegido: solo rol Admin) */}
+      <Route element={<RutaAdmin />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminHome />} />
+          <Route path="cursos" element={<AdminCursos />} />
+          <Route path="cursos/nuevo" element={<AdminCursoForm />} />
+          <Route path="cursos/:id/editar" element={<AdminCursoForm />} />
+          <Route path="usuarios" element={<AdminUsuarios />} />
+          <Route path="usuarios/nuevo" element={<AdminUsuarioForm />} />
+          <Route path="usuarios/:id/editar" element={<AdminUsuarioForm />} />
+        </Route>
       </Route>
     </Routes>
   );
