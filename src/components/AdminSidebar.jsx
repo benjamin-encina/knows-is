@@ -1,8 +1,12 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const claseAdminLink = ({ isActive }) => "admin-nav-link" + (isActive ? " active" : "");
 
 export default function AdminSidebar() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <aside className="admin-sidebar">
       <Link to="/admin" className="navbar-brand">
@@ -28,6 +32,10 @@ export default function AdminSidebar() {
         <Link to="/" className="admin-nav-link">
           <i className="bi bi-box-arrow-left"></i> Salir al sitio
         </Link>
+        <a href="#" className="admin-nav-link"
+          onClick={(e) => { e.preventDefault(); logout(); navigate("/login"); }}>
+          <i className="bi bi-box-arrow-right"></i> Cerrar sesión
+        </a>
       </div>
     </aside>
   );
