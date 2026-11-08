@@ -18,13 +18,16 @@ import "./styles/styles.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext";  
 import { CursosProvider } from "./context/CursosContext";
+import { UsuariosProvider } from "./context/UsuarioContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <CursosProvider>
-          <App />
+          <UsuariosProvider>
+            <App />
+          </UsuariosProvider>
         </CursosProvider>
       </AuthProvider>
     </BrowserRouter>
