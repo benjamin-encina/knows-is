@@ -22,25 +22,26 @@ export default function Contacto() {
         <div className="container">
           <span className="eyebrow">Contacto</span>
           <h1>¿Tienes dudas antes de inscribirte?</h1>
-          <p className="lead mt-3">Escríbenos y te respondemos a la brevedad.</p>
+          <p className="lead">Escríbenos y te respondemos a la brevedad.</p>
         </div>
       </section>
 
-      <section className="section">
+      <section className="section-tight">
         <div className="container">
-          <div className="row g-5">
+          <div className="row g-4 g-lg-5 align-items-start">
             <div className="col-lg-5">
-              <h2 className="h5 mb-3">Otras formas de contactarnos</h2>
+              <h2 className="h4 mb-2">Otras formas de contactarnos</h2>
+              <p className="text-muted mb-4">Elige el canal que te resulte más cómodo.</p>
               {[
                 ["bi-envelope", "Correo", "contacto@knows-is.cl"],
                 ["bi-geo-alt", "Ubicación", "Santiago, Chile"],
                 ["bi-clock", "Horario de atención", "Lunes a viernes, 9:00 a 18:00"],
               ].map(([icono, titulo, texto]) => (
-                <div className="d-flex gap-3 mb-3" key={titulo}>
-                  <div className="value-icon flex-shrink-0"><i className={`bi ${icono}`}></i></div>
+                <div className="contact-item" key={titulo}>
+                  <div className="value-icon"><i className={`bi ${icono}`}></i></div>
                   <div>
-                    <div className="fw-semibold">{titulo}</div>
-                    <div className="text-muted small">{texto}</div>
+                    <div className="contact-label">{titulo}</div>
+                    <div className="contact-text">{texto}</div>
                   </div>
                 </div>
               ))}
@@ -48,6 +49,7 @@ export default function Contacto() {
 
             <div className="col-lg-7">
               <form className="form-tech admin-card p-4 p-md-5" noValidate onSubmit={f.enviar(alEnviar)}>
+                <h2 className="h4 mb-4">Envíanos un mensaje</h2>
                 {enviado && (
                   <div className="alert alert-success" role="alert">¡Mensaje enviado! Te responderemos pronto.</div>
                 )}

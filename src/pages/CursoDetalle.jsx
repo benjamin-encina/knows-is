@@ -2,12 +2,13 @@ import { Link, useParams } from "react-router-dom";
 import { cupoEnAlerta, nombreCategoria } from "../data/cursos";
 import { useCursos } from "../context/CursosContext";
 import { formatearPrecio } from "../utils/formato";
-import { useAuth } from "../context/AuthContext";
+import AccionesCompra from "../components/AccionesCompra";
+import { useCompras } from "../context/ComprasContext";
 
 export default function CursoDetalle() {
   const { id } = useParams();
-  const { estaLogueado } = useAuth();
   const { obtenerCurso } = useCursos();
+  const { ocupadosDe, disponiblesDe } = useCompras();
   const curso = obtenerCurso(id);
 
   if (!curso) {
@@ -22,6 +23,7 @@ export default function CursoDetalle() {
   }
 
   const categoria = nombreCategoria(curso.categoria);
+  const disponibles = disponiblesDe(curso);
 
   return (
     <section className="section" style={{ paddingTop: "3rem" }}>
@@ -77,17 +79,10 @@ export default function CursoDetalle() {
               </div>
               <div className="d-flex justify-content-between small mb-4">
                 <span className="text-muted">Cupos disponibles</span>
-                <span>{curso.cupos}{cupoEnAlerta(curso) && <span className="badge-tech ms-2">¡Últimos cupos!</span>}</span>
+                <span>{disponibles} de {curso.cupos}{cupoEnAlerta(curso, ocupadosDe(curso.id)) && <span className="badge-tech ms-2">¡Últimos cupos!</span>}</span>
               </div>
 
-              {/* El carrito está pendiente de decisión (punto 7): por ahora lleva al registro como en la maqueta */}
-              {estaLogueado ? (
-                <button type="button" className="btn btn-tech-primary w-100 mb-2" disabled>
-                  Inscripción disponible pronto
-                </button>
-              ) : (
-                <Link to="/registro" className="btn btn-tech-primary w-100 mb-2">Inscribirme</Link>
-              )}
+              <AccionesCompra curso={curso} />
               <Link to="/cursos" className="btn btn-tech-outline w-100">Volver al catálogo</Link>
             </div>
           </div>

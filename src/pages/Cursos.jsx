@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import CourseCard from "../components/CourseCard";
-import { categorias, niveles } from "../data/cursos";
+import { categorias, niveles, nombreCategoria } from "../data/cursos";
 import { useCursos } from "../context/CursosContext";
 
 export default function Cursos() {
@@ -25,6 +25,9 @@ export default function Cursos() {
       (!nivel || c.nivel === nivel) &&
       (!texto || c.nombre.toLowerCase().includes(texto) || c.descripcion.toLowerCase().includes(texto))
   );
+
+  // Sin filtros en la URL (/cursos a secas) se muestran TODOS los cursos
+  const hayFiltros = Boolean(categoria || nivel || texto);
 
   return (
     <>
@@ -59,6 +62,18 @@ export default function Cursos() {
 
       <section className="section">
         <div className="container">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <span className="small text-muted">
+              Mostrando {filtrados.length} de {cursos.length} {cursos.length === 1 ? "curso" : "cursos"}
+              {categoria && ` en ${nombreCategoria(categoria)}`}
+            </span>
+            {hayFiltros && (
+              <button type="button" className="btn btn-link btn-sm p-0" onClick={() => setParams({}, { replace: true })}>
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
           {filtrados.length === 0 ? (
             <p className="text-muted text-center">No encontramos cursos con esos filtros.</p>
           ) : (

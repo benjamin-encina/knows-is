@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { categorias } from "../data/cursos";
 import SesionNavbar from "./SesionNavbar";
+import { useCarrito } from "../context/CarritoContext";
 
 const categoriasMenu = categorias.filter((c) => c.enMenu);
 
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [cursosAbierto, setCursosAbierto] = useState(false); // desplegable "Cursos"
   const dropdownRef = useRef(null);
   const location = useLocation();
+  const { cantidad } = useCarrito();
 
   // Cierra los menús en cada navegación (location.key cambia incluso si solo cambia el ?query)
   useEffect(() => {
@@ -102,18 +104,15 @@ export default function Navbar() {
               </li>
             </ul>
 
-            <div className="d-flex align-items-center gap-2">
-              {/* PENDIENTE DE DECISIÓN DEL EQUIPO: el carrito quedó fuera del alcance.
-                  Se mantiene igual que en la versión HTML hasta decidir si se quita o se implementa. */}
-              <a
-                href="#"
-                className="link-tech d-flex align-items-center gap-1"
-                aria-label="Carrito de compras (0 productos)"
-                onClick={(e) => e.preventDefault()}
+            <div className="d-flex align-items-center flex-wrap gap-2 mt-3 mt-lg-0">
+              <Link
+                to="/carrito"
+                className="link-tech d-flex align-items-center gap-1 text-nowrap"
+                aria-label={`Carrito de compras (${cantidad} ${cantidad === 1 ? "curso" : "cursos"})`}
               >
                 <i className="bi bi-cart3 fs-5"></i>
-                <span className="small">Cart (0)</span>
-              </a>
+                <span className="small">Cart ({cantidad})</span>
+              </Link>
 
               <SesionNavbar />
             </div>

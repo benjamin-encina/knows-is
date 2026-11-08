@@ -1,4 +1,4 @@
-export const DOMINIOS_PERMITIDOS = ["@duoc.cl", "@profesor.duoc.cl", "@gmail.com"];
+export const DOMINIOS_PERMITIDOS = ["@knowsis.cl"];
 const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // al menos una minúscula, una mayúscula, un número y un caracter especial (# - $ & % ! * @)
 const REGEX_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#\-$&%!*@])/;

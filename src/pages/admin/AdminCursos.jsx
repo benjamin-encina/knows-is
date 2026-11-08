@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AdminTopbar from "../../components/AdminTopbar";
+import ResumenCupos from "../../components/ResumenCupos";
+import { useCompras } from "../../context/ComprasContext";
 import { useCursos } from "../../context/CursosContext";
 import { cupoEnAlerta, nombreCategoria } from "../../data/cursos";
 import { formatearPrecio } from "../../utils/formato";
 
 export default function AdminCursos() {
   const { cursos, eliminarCurso } = useCursos();
+  const { ocupadosDe } = useCompras();
   const location = useLocation();
   const [porEliminar, setPorEliminar] = useState(null); // curso que se está por borrar
   const [mensaje, setMensaje] = useState(location.state?.mensaje || "");
@@ -16,8 +19,6 @@ export default function AdminCursos() {
     setMensaje(`Curso "${porEliminar.nombre}" eliminado.`);
     setPorEliminar(null);
   };
-
-  const enAlerta = cursos.filter(cupoEnAlerta).length;
 
   return (
     <>
@@ -34,12 +35,7 @@ export default function AdminCursos() {
             <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setMensaje("")}></button>
           </div>
         )}
-        {enAlerta > 0 && (
-          <p className="small text-muted mb-3">
-            <span className="status-dot status-warn"></span>
-            {enAlerta} {enAlerta === 1 ? "curso con cupo crítico" : "cursos con cupo crítico"}
-          </p>
-        )}
+        <ResumenCupos />
 
         <div className="admin-card">
           <table className="admin-table">
@@ -50,7 +46,7 @@ export default function AdminCursos() {
                 <th>Categoría</th>
                 <th>Nivel</th>
                 <th>Precio</th>
-                <th>Cupos</th>
+                <th>Cupos (ocupados / total)</th>
                 <th></th>
               </tr>
             </thead>
@@ -59,7 +55,7 @@ export default function AdminCursos() {
                 <tr><td colSpan={7} className="text-center text-muted py-4">No hay cursos. Crea el primero con "Nuevo curso".</td></tr>
               )}
               {cursos.map((curso) => {
-                const alerta = cupoEnAlerta(curso);
+                const alerta = cupoEnAlerta(curso, ocupadosDe(curso.id));
                 return (
                   <tr key={curso.id}>
                     <td className="text-muted">{curso.codigo}</td>
@@ -69,7 +65,7 @@ export default function AdminCursos() {
                     <td>{formatearPrecio(curso.precio)}</td>
                     <td title={alerta ? "Cupo crítico: quedan pocos cupos" : ""}>
                       <span className={`status-dot ${alerta ? "status-warn" : "status-ok"}`}></span>
-                      {curso.cupos}
+                      {ocupadosDe(curso.id)} / {curso.cupos}
                       {alerta && <span className="small text-danger ms-2">crítico</span>}
                     </td>
                     <td className="text-end text-nowrap">

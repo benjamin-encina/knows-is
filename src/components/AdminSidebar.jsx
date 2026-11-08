@@ -23,6 +23,9 @@ export default function AdminSidebar() {
       <NavLink to="/admin/usuarios" className={claseAdminLink}>
         <i className="bi bi-people"></i> Usuarios
       </NavLink>
+      <NavLink to="/admin/ordenes" className={claseAdminLink}>
+        <i className="bi bi-receipt"></i> Órdenes
+      </NavLink>
 
       <div className="admin-nav-divider">
         {/* Configuración no tiene página todavía (igual que en la versión HTML) */}

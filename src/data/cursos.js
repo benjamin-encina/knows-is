@@ -22,6 +22,7 @@ export const niveles = ["Inicial", "Intermedio", "Avanzado"];
 
 export const instructores = ["Kevin Soto", "Benjamín Rojas"];
 
+// cupos = cupos TOTALES del curso. Los ocupados se calculan desde las órdenes de compra.
 export const cursos = [
   {
     id: 1,
@@ -29,7 +30,7 @@ export const cursos = [
     nombre: "JavaScript desde cero",
     descripcion: "Domina la base del desarrollo web moderno, paso a paso.",
     precio: 210000,
-    cupos: 20,
+    cupos: 30,
     cupoCritico: 5,
     categoria: "programacion",
     nivel: "Inicial",
@@ -45,8 +46,8 @@ export const cursos = [
     nombre: "Fundamentos de Ciberseguridad",
     descripcion: "Conoce las amenazas más comunes y cómo proteger sistemas y datos.",
     precio: 450000,
-    cupos: 2,
-    cupoCritico: 5,
+    cupos: 10,
+    cupoCritico: 3,
     categoria: "ciberseguridad",
     nivel: "Intermedio",
     instructor: "Benjamín Rojas",
@@ -61,7 +62,7 @@ export const cursos = [
     nombre: "UX/UI para Producto Digital",
     descripcion: "Diseña interfaces claras y centradas en la persona usuaria.",
     precio: 260000,
-    cupos: 18,
+    cupos: 30,
     cupoCritico: 5,
     categoria: "diseno",
     nivel: "Inicial",
@@ -77,7 +78,7 @@ export const cursos = [
     nombre: "Administración de Redes",
     descripcion: "Configura y administra infraestructura de red desde cero.",
     precio: 320000,
-    cupos: 15,
+    cupos: 25,
     cupoCritico: 5,
     categoria: "redes",
     nivel: "Intermedio",
@@ -93,8 +94,8 @@ export const cursos = [
     nombre: "Ingeniería de Prompts y Agentes IA",
     descripcion: "Aprende a diseñar prompts y agentes que resuelvan tareas reales.",
     precio: 390000,
-    cupos: 3,
-    cupoCritico: 5,
+    cupos: 8,
+    cupoCritico: 3,
     categoria: "ia",
     nivel: "Inicial",
     instructor: "Kevin Soto",
@@ -112,7 +113,7 @@ export function nombreCategoria(slug) {
   return categoria ? categoria.nombre : slug;
 }
 
-// true si los cupos están en o bajo el mínimo crítico definido para el curso
-export function cupoEnAlerta(curso) {
-  return curso.cupoCritico != null && curso.cupos <= curso.cupoCritico;
+// true si los cupos DISPONIBLES (totales - ocupados) están en o bajo el mínimo crítico del curso
+export function cupoEnAlerta(curso, ocupados = 0) {
+  return curso.cupoCritico != null && curso.cupos - ocupados <= curso.cupoCritico;
 }

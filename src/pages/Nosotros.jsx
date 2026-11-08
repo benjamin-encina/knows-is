@@ -9,6 +9,9 @@ const equipo = [
   { nombre: "Ghislaine Carrasco", rol: "Profesora en cursos de Desarrollo & Front-End" },
 ];
 
+// "Benjamín Encina" -> "BE"
+const iniciales = (nombre) => nombre.split(" ").slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+
 export default function Nosotros() {
   return (
     <>
@@ -16,14 +19,18 @@ export default function Nosotros() {
         <div className="container">
           <span className="eyebrow">Nosotros</span>
           <h1>Formamos personas, no solo llenamos horas de clase</h1>
-          <p className="lead mt-3">
+          <p className="lead">
             Knows-IS nace de un equipo que programa a diario y quiere que aprender tecnología sea directo, práctico y sin relleno teórico.
           </p>
         </div>
       </section>
 
-      <section className="section">
+      <section className="section-tight">
         <div className="container">
+          <div className="section-heading">
+            <h2 className="h3">Lo que nos mueve</h2>
+            <p>Tres ideas que guían cada curso que armamos.</p>
+          </div>
           <div className="row g-4">
             {valores.map((v) => (
               <div className="col-md-4" key={v.titulo}>
@@ -38,15 +45,18 @@ export default function Nosotros() {
         </div>
       </section>
 
-      <section className="section section-alt">
+      <section className="section-tight section-alt">
         <div className="container">
-          <h2 className="h4 mb-4">El equipo</h2>
+          <div className="section-heading">
+            <h2 className="h3">El equipo</h2>
+            <p>Las personas detrás de Knows-IS.</p>
+          </div>
           <div className="row g-4">
             {equipo.map((p) => (
               <div className="col-md-4" key={p.nombre}>
                 <div className="team-card">
-                  <div className="team-avatar"></div>
-                  <h3 className="h6 mb-0">{p.nombre}</h3>
+                  <div className="team-avatar" aria-hidden="true">{iniciales(p.nombre)}</div>
+                  <h3 className="h6">{p.nombre}</h3>
                   <div className="team-role">{p.rol}</div>
                 </div>
               </div>

@@ -14,20 +14,24 @@ import "@fontsource/space-grotesk/700.css";
 import "@fontsource/space-mono/400.css";
 
 import "./styles/styles.css";
+import "./styles/paginas.css";
 
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext";  
 import { CursosProvider } from "./context/CursosContext";
-import { UsuariosProvider } from "./context/UsuarioContext";
+import { CarritoProvider } from "./context/CarritoContext";
+import { ComprasProvider } from "./context/ComprasContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <CursosProvider>
-          <UsuariosProvider>
-            <App />
-          </UsuariosProvider>
+          <CarritoProvider>
+            <ComprasProvider>
+              <App />
+            </ComprasProvider>
+          </CarritoProvider>
         </CursosProvider>
       </AuthProvider>
     </BrowserRouter>
