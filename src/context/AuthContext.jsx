@@ -4,6 +4,7 @@ import { usuarios as usuariosBase } from "../data/usuarios";
 const AuthContext = createContext(null);
 const KEY_SESION = "knowsis_sesion";
 const KEY_REGISTRADOS = "knowsis_registrados";
+const KEY_ADMIN = "knowsis_usuarios_admin"; // lista que maneja el panel admin
 
 const leer = (clave, defecto) => {
   try { return JSON.parse(localStorage.getItem(clave)) ?? defecto; } catch { return defecto; }
@@ -13,10 +14,14 @@ export function AuthProvider({ children }) {
   // usuarios del mock (data/usuarios.js) + los que se registran desde /registro
   const [registrados, setRegistrados] = useState(() => leer(KEY_REGISTRADOS, []));
   const [usuario, setUsuario] = useState(() => leer(KEY_SESION, null));
-  const todos = [...usuariosBase, ...registrados];
-
+  const obtenerTodos = () => {
+    const admin = leer(KEY_ADMIN, null);
+    if (!Array.isArray(admin)) return [...usuariosBase, ...registrados];
+    const nuevos = registrados.filter((r) => !admin.some((u) => String(u.id) === String(r.id)));
+    return [...admin, ...nuevos];
+  };
   const login = (correo, contrasena) => {
-    const u = todos.find(
+    const u = obtenerTodos().find(
       (x) => x.correo.toLowerCase() === correo.trim().toLowerCase() && x.contrasena === contrasena
     );
     if (!u) return { ok: false, error: "Correo o contraseña incorrectos." };
@@ -28,7 +33,7 @@ export function AuthProvider({ children }) {
   };
 
   const registrar = (datos) => {
-    if (todos.some((x) => x.correo.toLowerCase() === datos.correo.trim().toLowerCase())) {
+    if (obtenerTodos().some((x) => x.correo.toLowerCase() === datos.correo.trim().toLowerCase())) {
       return { ok: false, error: "Ya existe una cuenta con ese correo." };
     }
     const nuevo = {
