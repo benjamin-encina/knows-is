@@ -21,6 +21,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CursosProvider } from "./context/CursosContext";
 import { CarritoProvider } from "./context/CarritoContext";
 import { ComprasProvider } from "./context/ComprasContext";
+import { UsuariosProvider } from "./context/UsuarioContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -29,7 +30,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <CursosProvider>
           <CarritoProvider>
             <ComprasProvider>
-              <App />
+              <UsuariosProvider>
+                <App />
+              </UsuariosProvider>
             </ComprasProvider>
           </CarritoProvider>
         </CursosProvider>
