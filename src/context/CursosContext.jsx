@@ -9,7 +9,7 @@ const CursosContext = createContext(null);
 
 // Si cambia la forma de los datos de ejemplo (data/cursos.js), subir el número de versión
 // para que todos dejen de usar lo que quedó guardado en su navegador.
-const KEY_CURSOS = "knowsis_cursos_v1";
+const KEY_CURSOS = "knowsis_cursos_v2";
 
 const maxId = (lista) => lista.reduce((max, c) => Math.max(max, c.id), 0);
 
