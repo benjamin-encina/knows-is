@@ -1,66 +1,66 @@
-# Knows-IS (React)
+# Knows-IS · Frontend
 
-Migración de la plataforma de academia tecnológica a **React + Vite**.
-Proyecto académico — DuocUC, curso DSY1104.
-
-Esta versión contiene **solo la base**: arranque del proyecto (sección 1) y componentes
-comunes, layouts y rutas (sección 2). Las páginas están como provisorias
-(`PaginaPendiente`) para que ninguna ruta dé 404 mientras se migran.
+Sitio y panel de administración de la academia Knows-IS (DSY1104). React 18 · Vite · React Router · Bootstrap · Vitest.
+La API está en el repositorio `knows-is-backend` (Spring Boot).
 
 ## Cómo ejecutarlo
 
 ```bash
-npm install      # solo la primera vez (genera package-lock.json: súbanlo al repo)
-npm run dev      # servidor de desarrollo → http://localhost:5173
-npm run build    # compila a /dist para comprobar que no hay errores
+npm install          # solo la primera vez
+npm run dev          # http://localhost:5173
+npm test             # pruebas (Vitest)
+npm run coverage     # pruebas + informe de cobertura
+npm run build        # compila a /dist
 ```
 
 Requiere Node 18 o superior.
+
+### Conexión con el backend
+
+1. Copia `.env.example` como `.env` (en PowerShell: `Copy-Item .env.example .env`). Ahí está `VITE_API_URL` (por defecto `http://localhost:8080`).
+2. Levanta el backend (ver su README) antes de abrir la app.
+
+Todas las llamadas HTTP pasan por `src/api/client.js`; cada recurso tiene su módulo (`cursosApi`, `authApi`, `usuariosApi`, `ordenesApi`).
+El contrato completo (endpoints, JSON, permisos) está en `docs/contrato-api.md` del repositorio del backend.
+
+> Estado: la base de la integración (cliente HTTP y módulos de API) ya está. Mientras cada frente conecta su parte,
+> la app sigue funcionando con datos locales (`localStorage`).
+>
+> | Parte | Se conecta a la API |
+> |---|---|
+> | Cursos (catálogo, detalle, admin de cursos) | Frente A |
+> | Autenticación, sesión, permisos y usuarios | Frente B |
+> | Carrito, compras, perfil y órdenes | Frente C |
 
 ## Estructura
 
 ```
 src/
-├── main.jsx            # Punto de entrada: Bootstrap, íconos, fuentes, estilos y router
-├── App.jsx             # TODAS las rutas del proyecto
-├── styles/styles.css   # Estilos propios (se cargan después de Bootstrap)
-├── data/               # Datos mock: cursos.js y usuarios.js (fuente única de datos)
-├── utils/              # Funciones auxiliares (formato de precio, y luego validaciones)
-├── components/         # Navbar, Footer, AdminSidebar, AdminTopbar, CourseCard...
-├── layouts/            # PublicLayout, AuthLayout, AdminLayout
-└── pages/              # Una página por ruta (admin/ para el panel)
+├── api/          cliente HTTP y un módulo por recurso (hablan con el backend)
+├── components/   Navbar, Footer, CourseCard, Campo, rutas protegidas...
+├── context/      estado global: Auth, Cursos, Carrito, Compras, Usuarios
+├── data/         datos de ejemplo y listas fijas (regiones, categorías)
+├── hooks/        useFormulario
+├── layouts/      PublicLayout, AuthLayout, AdminLayout
+├── pages/        una página por ruta (admin/ para el panel)
+├── styles/       estilos globales
+├── utils/        validaciones, RUT, formatos y cálculo de pagos
+├── test/         configuración de las pruebas
+└── __tests__/    pruebas (formularios)
 ```
 
 ## Rutas
 
-| Ruta | Layout | Archivo | Origen en la versión HTML |
-|---|---|---|---|
-| `/` | Público | `pages/Home.jsx` | `index.html` |
-| `/cursos` (`?categoria=`) | Público | `pages/Cursos.jsx` | nuevo |
-| `/cursos/:id` | Público | `pages/CursoDetalle.jsx` | nuevo |
-| `/nosotros` | Público | `pages/Nosotros.jsx` | nuevo |
-| `/contacto` | Público | `pages/Contacto.jsx` | nuevo |
-| `/login` | Auth | `pages/Login.jsx` | `login.html` |
-| `/registro` | Auth | `pages/Registro.jsx` | `registro.html` |
-| `/admin` | Admin | `pages/admin/AdminHome.jsx` | nuevo |
-| `/admin/cursos` | Admin | `pages/admin/AdminCursos.jsx` | `admin-cursos.html` |
-| `/admin/cursos/nuevo` y `/admin/cursos/:id/editar` | Admin | `pages/admin/AdminCursoForm.jsx` | `admin-curso-form.html` |
-| `/admin/usuarios` | Admin | `pages/admin/AdminUsuarios.jsx` | nuevo |
-| `/admin/usuarios/nuevo` y `/admin/usuarios/:id/editar` | Admin | `pages/admin/AdminUsuarioForm.jsx` | nuevo |
+| Ruta | Acceso |
+|---|---|
+| `/`, `/cursos`, `/cursos/:id`, `/nosotros`, `/contacto`, `/carrito` | Público |
+| `/login`, `/registro` | Público |
+| `/checkout`, `/compra/exito/:id`, `/perfil` | Con sesión |
+| `/admin`, `/admin/cursos`, `/admin/usuarios`, `/admin/ordenes` (y sus formularios) | Solo rol Admin |
 
 ## Convenciones
 
-- Componentes y páginas: archivos en **PascalCase** (`CourseCard.jsx`); funciones y datos en camelCase.
-- Un componente por archivo, con `export default`.
-- **Los datos se leen siempre desde `src/data/`**, nunca se escriben a mano en una página.
-- Los estilos van en `styles/styles.css`, reutilizando las clases existentes (`course-card`, `admin-card`, `form-tech`...).
-- No se usa JavaScript de Bootstrap: el navbar y el desplegable se controlan con `useState`.
-- Migrar una página = reemplazar el contenido de su archivo (borrando `PaginaPendiente`) y convertir el HTML a JSX:
-  `class` → `className`, `for` → `htmlFor`, etiquetas autocerradas (`<input />`), `style="..."` → `style={{ ... }}`,
-  y `<a href="x.html">` → `<Link to="/x">`.
-
-## Pendientes de decisión del equipo
-
-- Carrito: el navbar mantiene el "Cart (0)" de la versión HTML sin funcionalidad.
-- Persistencia: datos mock en memoria, `localStorage` o API conectada a Oracle.
-- Los cupos de ejemplo en `data/cursos.js` (2, 3, 15, 18, 20) son menores al mínimo de 25 que exige el formulario de curso: definir si "cupos" significa total o disponibles.
+- Componentes y páginas en PascalCase, un componente por archivo.
+- Los datos nunca se escriben a mano en una página: se leen del contexto (y, con la integración, de la API).
+- Una rama por frente (`feature/cursos`, `feature/auth`, `feature/compras`), commits pequeños, Pull Request revisado por otra persona.
+- No se suben claves ni el archivo `.env`.
