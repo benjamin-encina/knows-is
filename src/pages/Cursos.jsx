@@ -5,7 +5,7 @@ import { useCursos } from "../context/CursosContext";
 
 export default function Cursos() {
   
-  const { cursos } = useCursos();
+  const { cursos, cargando, error } = useCursos();
   const [params, setParams] = useSearchParams();
   const categoria = params.get("categoria") || "";
   const nivel = params.get("nivel") || "";
@@ -74,7 +74,11 @@ export default function Cursos() {
             )}
           </div>
 
-          {filtrados.length === 0 ? (
+          {error && <div className="alert alert-danger" role="alert">{error}</div>}
+
+          {cargando ? (
+            <p className="text-muted text-center">Cargando cursos...</p>
+          ) : filtrados.length === 0 ? (
             <p className="text-muted text-center">No encontramos cursos con esos filtros.</p>
           ) : (
             <div className="row g-4">

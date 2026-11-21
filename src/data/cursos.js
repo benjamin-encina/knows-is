@@ -108,6 +108,11 @@ export const cursos = [
 
 /* ---------- Helpers ---------- */
 
+// La base de datos puede traer imagen null: se usa una imagen de relleno estable por código de curso.
+export function imagenDe(curso) {
+  return curso.imagen || `https://picsum.photos/seed/knowsis-${curso.codigo}/480/270`;
+}
+
 export function nombreCategoria(slug) {
   const categoria = categorias.find((c) => c.slug === slug);
   return categoria ? categoria.nombre : slug;

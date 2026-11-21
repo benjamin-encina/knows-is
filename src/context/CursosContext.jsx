@@ -1,79 +1,81 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { cursos as cursosBase } from "../data/cursos";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  listarCursos,
+  crearCurso as crearCursoApi,
+  editarCurso as editarCursoApi,
+  eliminarCurso as eliminarCursoApi,
+} from "../api/cursosApi";
 
-// Estado compartido de cursos: lo leen el sitio público y el panel admin.
-// Persiste en localStorage (sin base de datos), así que los cambios hechos desde el admin
-// se mantienen al recargar. Los CUPOS de cada curso son los cupos TOTALES; los ocupados
-// se calculan desde las órdenes de compra (ver ComprasContext).
 const CursosContext = createContext(null);
 
-// Si cambia la forma de los datos de ejemplo (data/cursos.js), subir el número de versión
-// para que todos dejen de usar lo que quedó guardado en su navegador.
-const KEY_CURSOS = "knowsis_cursos_v2";
-
-const maxId = (lista) => lista.reduce((max, c) => Math.max(max, c.id), 0);
-
-const leer = () => {
-  try {
-    const guardado = JSON.parse(localStorage.getItem(KEY_CURSOS));
-    if (guardado && Array.isArray(guardado.cursos)) return guardado;
-  } catch {
-    /* dato corrupto o sin almacenamiento: se parte de los datos de ejemplo */
-  }
-  return { cursos: cursosBase, ultimoId: maxId(cursosBase) };
-};
+// El backend (PUT) reemplaza el curso completo, así que siempre se envían TODOS los campos
+// que acepta CursoRequest (si faltara alguno, se borraría en la base de datos).
+const aCuerpo = (c) => ({
+  codigo: c.codigo,
+  nombre: c.nombre,
+  descripcion: c.descripcion ?? "",
+  precio: c.precio,
+  cupos: c.cupos,
+  cupoCritico: c.cupoCritico ?? null,
+  categoria: c.categoria,
+  nivel: c.nivel,
+  instructor: c.instructor,
+  imagen: c.imagen ?? null,
+  icono: c.icono ?? null,
+  destacado: Boolean(c.destacado),
+  nuevo: Boolean(c.nuevo),
+});
 
 export function CursosProvider({ children }) {
-  // ultimoId evita reutilizar el id de un curso eliminado (las órdenes antiguas apuntan a él)
-  const [estado, setEstado] = useState(leer);
-  const { cursos } = estado;
+  const [cursos, setCursos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
+  const recargar = useCallback(async () => {
+    setCargando(true);
+    setError("");
     try {
-      localStorage.setItem(KEY_CURSOS, JSON.stringify(estado));
-    } catch {
-      /* sin almacenamiento disponible: los cursos viven solo en memoria */
+      setCursos(await listarCursos());
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
     }
-  }, [estado]);
-
-  // Si el admin edita cursos en otra pestaña, esta se actualiza sola
-  useEffect(() => {
-    const alCambiar = (e) => {
-      if (e.key === KEY_CURSOS) setEstado(leer());
-    };
-    window.addEventListener("storage", alCambiar);
-    return () => window.removeEventListener("storage", alCambiar);
   }, []);
+
+  // Al abrir la app se piden los cursos al backend una vez
+  useEffect(() => {
+    recargar();
+  }, [recargar]);
 
   const obtenerCurso = (id) => cursos.find((c) => String(c.id) === String(id));
 
-  const crearCurso = (datos) => {
-    const id = Math.max(estado.ultimoId, maxId(cursos)) + 1;
-    const nuevo = {
-      destacado: false,
-      nuevo: true,
-      icono: "bi-journal-code",
-      imagen: `https://picsum.photos/seed/knowsis-${datos.codigo}/480/270`,
-      ...datos,
-      id,
-    };
-    setEstado((s) => ({ cursos: [...s.cursos, nuevo], ultimoId: id }));
-    return nuevo;
+  // crear, editar y eliminar son asíncronos: si el backend responde con error
+  // (409, 422, 400...) lanzan un ErrorApi y quien los llama muestra el mensaje.
+  const crearCurso = async (datos) => {
+    const creado = await crearCursoApi(
+      aCuerpo({ destacado: false, nuevo: true, icono: "bi-journal-code", ...datos })
+    );
+    setCursos((lista) => [...lista, creado]);
+    return creado;
   };
 
-  const editarCurso = (id, datos) => {
-    setEstado((s) => ({
-      ...s,
-      cursos: s.cursos.map((c) => (String(c.id) === String(id) ? { ...c, ...datos } : c)),
-    }));
+  const editarCurso = async (id, datos) => {
+    const actual = obtenerCurso(id);
+    const actualizado = await editarCursoApi(id, aCuerpo({ ...actual, ...datos }));
+    setCursos((lista) => lista.map((c) => (String(c.id) === String(id) ? actualizado : c)));
+    return actualizado;
   };
 
-  const eliminarCurso = (id) => {
-    setEstado((s) => ({ ...s, cursos: s.cursos.filter((c) => String(c.id) !== String(id)) }));
+  const eliminarCurso = async (id) => {
+    await eliminarCursoApi(id);
+    setCursos((lista) => lista.filter((c) => String(c.id) !== String(id)));
   };
 
   return (
-    <CursosContext.Provider value={{ cursos, obtenerCurso, crearCurso, editarCurso, eliminarCurso }}>
+    <CursosContext.Provider
+      value={{ cursos, cargando, error, recargar, obtenerCurso, crearCurso, editarCurso, eliminarCurso }}
+    >
       {children}
     </CursosContext.Provider>
   );

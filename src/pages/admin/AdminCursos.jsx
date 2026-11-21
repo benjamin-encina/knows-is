@@ -8,17 +8,25 @@ import { cupoEnAlerta, nombreCategoria } from "../../data/cursos";
 import { formatearPrecio } from "../../utils/formato";
 
 export default function AdminCursos() {
-  const { cursos, eliminarCurso } = useCursos();
+const { cursos, cargando, error, eliminarCurso } = useCursos();
   const { ocupadosDe } = useCompras();
   const location = useLocation();
   const [porEliminar, setPorEliminar] = useState(null); // curso que se está por borrar
   const [mensaje, setMensaje] = useState(location.state?.mensaje || "");
 
-  const confirmarEliminar = () => {
-    eliminarCurso(porEliminar.id);
+const [errorEliminar, setErrorEliminar] = useState("");
+
+const confirmarEliminar = async () => {
+  setErrorEliminar("");
+  try {
+    await eliminarCurso(porEliminar.id);
     setMensaje(`Curso "${porEliminar.nombre}" eliminado.`);
-    setPorEliminar(null);
-  };
+  } catch (e) {
+    // por ejemplo 409: el curso ya tiene compras asociadas
+    setErrorEliminar(e.message);
+  }
+  setPorEliminar(null);
+};
 
   return (
     <>
@@ -35,8 +43,15 @@ export default function AdminCursos() {
             <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setMensaje("")}></button>
           </div>
         )}
+        {errorEliminar && (
+          <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+            <span><i className="bi bi-exclamation-triangle me-1"></i> {errorEliminar}</span>
+            <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setErrorEliminar("")}></button>
+          </div>
+        )}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <ResumenCupos />
-
+        
         <div className="admin-card">
           <table className="admin-table">
             <thead>
@@ -51,7 +66,10 @@ export default function AdminCursos() {
               </tr>
             </thead>
             <tbody>
-              {cursos.length === 0 && (
+              {cargando && (
+                <tr><td colSpan={7} className="text-center text-muted py-4">Cargando cursos...</td></tr>
+              )}
+              {!cargando && cursos.length === 0 && (
                 <tr><td colSpan={7} className="text-center text-muted py-4">No hay cursos. Crea el primero con "Nuevo curso".</td></tr>
               )}
               {cursos.map((curso) => {

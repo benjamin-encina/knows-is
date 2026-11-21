@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ResumenOrden from "../components/ResumenOrden";
 import { useCarrito } from "../context/CarritoContext";
 import { useCompras } from "../context/ComprasContext";
-import { nombreCategoria } from "../data/cursos";
+import { imagenDe, nombreCategoria } from "../data/cursos";
 import { formatearPrecio } from "../utils/formato";
 import { DESCUENTO_PRIMERA_CUOTA } from "../utils/pagos";
 
@@ -44,8 +44,7 @@ export default function Carrito() {
                   <div
                     style={{
                       width: 96, height: 64, borderRadius: 8, flexShrink: 0,
-                      backgroundImage: `url('${curso.imagen}')`, backgroundSize: "cover", backgroundPosition: "center",
-                    }}
+                      backgroundImage: `url('${imagenDe(curso)}')`, backgroundSize: "cover", backgroundPosition: "center",                    }}
                   />
                   <div className="flex-grow-1">
                     <span className="course-tag">{nombreCategoria(curso.categoria)} · {curso.nivel}</span>

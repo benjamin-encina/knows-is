@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { cupoEnAlerta, nombreCategoria } from "../data/cursos";
+import { cupoEnAlerta, imagenDe, nombreCategoria } from "../data/cursos";
 import { useCursos } from "../context/CursosContext";
 import { formatearPrecio } from "../utils/formato";
 import AccionesCompra from "../components/AccionesCompra";
@@ -7,9 +7,17 @@ import { useCompras } from "../context/ComprasContext";
 
 export default function CursoDetalle() {
   const { id } = useParams();
-  const { obtenerCurso } = useCursos();
+  const { obtenerCurso, cargando } = useCursos();  
   const { ocupadosDe, disponiblesDe } = useCompras();
   const curso = obtenerCurso(id);
+  
+  if (!curso && cargando) {
+    return (
+      <section className="section">
+        <div className="container text-center text-muted">Cargando curso...</div>
+      </section>
+    );
+  }
 
   if (!curso) {
     return (
@@ -36,7 +44,7 @@ export default function CursoDetalle() {
         <div className="row g-5">
           <div className="col-lg-7">
             <div className="course-icon-panel"
-              style={{ borderRadius: 14, aspectRatio: "16/10", backgroundImage: `url('${curso.imagen}')` }}>
+              style={{ borderRadius: 14, aspectRatio: "16/10", backgroundImage: `url('${imagenDe(curso)}')` }}>
               <i className={`bi ${curso.icono}`}></i>
             </div>
 
