@@ -16,9 +16,19 @@ const vacio = {
   categoria: "", nivel: "", instructor: "", imagen: "",
 };
 
-// Un solo formulario para "Nuevo curso" y "Editar curso" (si hay :id en la URL se precarga).
 export default function AdminCursoForm() {
   const { id } = useParams();
+  const { cargando } = useCursos();
+  // Al editar, se espera a que lleguen los cursos del backend antes de armar el formulario
+  // (el formulario toma sus valores iniciales una sola vez, al crearse).
+  if (id && cargando) {
+    return (
+      <>
+        <AdminTopbar titulo="Editar curso" />
+        <div className="admin-content text-muted">Cargando curso...</div>
+      </>
+    );
+  }
   // key: al pasar de "nuevo" a "editar" (o entre cursos) el formulario se reinicia
   return <FormularioCurso key={id || "nuevo"} id={id} />;
 }
@@ -28,6 +38,7 @@ function FormularioCurso({ id }) {
   const { cursos, obtenerCurso, crearCurso, editarCurso } = useCursos();
   const curso = id ? obtenerCurso(id) : null;
   const [archivo, setArchivo] = useState(null);
+  const [errorApi, setErrorApi] = useState(""); // mensaje de error que devuelve el backend
 
   const inicial = curso
     ? {
@@ -71,26 +82,32 @@ function FormularioCurso({ id }) {
     );
   }
 
-  const alGuardar = (v) => {
-    const datos = {
-      codigo: v.codigo.trim(),
-      nombre: v.nombre.trim(),
-      descripcion: v.descripcion.trim(),
-      precio: Number(v.precio),
-      cupos: Number(v.cupos),
-      cupoCritico: v.cupoCritico.trim() === "" ? null : Number(v.cupoCritico),
-      categoria: v.categoria,
-      nivel: v.nivel,
-      instructor: v.instructor,
-    };
-    if (archivo) datos.imagen = URL.createObjectURL(archivo); // vista previa en memoria (sin backend)
-    if (curso) editarCurso(curso.id, datos);
-    else crearCurso(datos);
+ const alGuardar = async (v) => {
+  setErrorApi("");
+  const datos = {
+    codigo: v.codigo.trim(),
+    nombre: v.nombre.trim(),
+    descripcion: v.descripcion.trim(),
+    precio: Number(v.precio),
+    cupos: Number(v.cupos),
+    cupoCritico: v.cupoCritico.trim() === "" ? null : Number(v.cupoCritico),
+    categoria: v.categoria,
+    nivel: v.nivel,
+    instructor: v.instructor,
+  };
+
+  try {
+    if (curso) await editarCurso(curso.id, datos);
+    else await crearCurso(datos);
     navigate("/admin/cursos", {
       state: { mensaje: curso ? "Curso actualizado correctamente." : "Curso creado correctamente." },
     });
-  };
-
+  } catch (e) {
+    // ErrorApi: e.message trae el "mensaje" del backend (409 código repetido, 422 regla de negocio...)
+    const detalle = e.detalles?.length ? ` (${e.detalles.join("; ")})` : "";
+    setErrorApi(`${e.message}${detalle}`);
+  }
+ };
   const p = (campo) => ({
     id: campo, value: f.valores[campo], onChange: f.cambiar, onBlur: f.salir, error: f.errorDe(campo),
   });
@@ -100,11 +117,14 @@ function FormularioCurso({ id }) {
     f.cambiar(e);
   };
 
+
+
   return (
     <>
       <AdminTopbar titulo={curso ? "Editar curso" : "Nuevo curso"} />
       <div className="admin-content">
         <form className="form-tech admin-card p-4" style={{ maxWidth: 760 }} noValidate onSubmit={f.enviar(alGuardar)}>
+          {errorApi && <div className="alert alert-danger" role="alert">{errorApi}</div>}
           <div className="row">
             <div className="col-md-4"><Campo label="Código del curso" {...p("codigo")} /></div>
             <div className="col-md-8"><Campo label="Nombre" maxLength={100} {...p("nombre")} /></div>
