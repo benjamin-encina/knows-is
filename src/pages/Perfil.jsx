@@ -37,9 +37,9 @@ export default function Perfil() {
     <section className="section-tight">
       <div className="container">
         <div className="perfil-cabecera">
-          <div className="perfil-avatar" aria-hidden="true">{iniciales(usuario.nombre)}</div>
+          <div className="perfil-avatar" aria-hidden="true">{iniciales(usuario.nombreCompleto)}</div>
           <div>
-            <h1>{usuario.nombre}</h1>
+            <h1>{usuario.nombreCompleto}</h1>
             <div className="perfil-correo">{usuario.correo}</div>
             <span className={`role-badge role-${usuario.rol.toLowerCase()}`}>{usuario.rol}</span>
           </div>

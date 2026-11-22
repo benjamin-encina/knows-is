@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AdminTopbar from "../../components/AdminTopbar";
 import Campo from "../../components/Campo";
@@ -15,6 +16,16 @@ const vacio = { nombre: "", correo: "", telefono: "", contrasena: "", rol: "", e
 // Un solo formulario para "Nuevo usuario" y "Editar usuario" (si hay :id en la URL se precarga)
 export default function AdminUsuarioForm() {
   const { id } = useParams();
+  const { cargando } = useUsuarios();
+  // al editar, se espera a que lleguen los usuarios del backend para precargar el formulario
+  if (id && cargando) {
+    return (
+      <>
+        <AdminTopbar titulo="Editar usuario" />
+        <div className="admin-content text-muted">Cargando usuario…</div>
+      </>
+    );
+  }
   // key: al pasar de "nuevo" a "editar" el formulario se reinicia
   return <FormularioUsuario key={id || "nuevo"} id={id} />;
 }
@@ -23,11 +34,12 @@ function FormularioUsuario({ id }) {
   const navigate = useNavigate();
   const { usuarios, obtenerUsuario, crearUsuario, editarUsuario } = useUsuarios();
   const usuario = id ? obtenerUsuario(id) : null;
+  const [errorGeneral, setErrorGeneral] = useState("");
 
   const inicial = usuario
     ? {
         ...vacio,
-        nombre: usuario.nombre,
+        nombre: usuario.nombreCompleto || usuario.nombre,
         correo: usuario.correo,
         telefono: usuario.telefono || "",
         rol: usuario.rol,
@@ -59,7 +71,7 @@ function FormularioUsuario({ id }) {
     );
   }
 
-  const alGuardar = (v) => {
+  const alGuardar = async (v) => {
     const datos = {
       nombre: v.nombre.trim(),
       correo: v.correo.trim(),
@@ -70,8 +82,13 @@ function FormularioUsuario({ id }) {
     // al editar, contraseña vacía = conservar la actual
     if (v.contrasena !== "") datos.contrasena = v.contrasena;
 
-    if (usuario) editarUsuario(usuario.id, datos);
-    else crearUsuario(datos);
+    try {
+      if (usuario) await editarUsuario(usuario.id, datos);
+      else await crearUsuario(datos);
+    } catch (e) {
+      setErrorGeneral(e.message); // por ejemplo: ya existe un usuario con ese correo (409)
+      return;
+    }
 
     navigate("/admin/usuarios", {
       state: { mensaje: usuario ? "Usuario actualizado correctamente." : "Usuario creado correctamente." },
@@ -87,6 +104,7 @@ function FormularioUsuario({ id }) {
       <AdminTopbar titulo={usuario ? "Editar usuario" : "Nuevo usuario"} />
       <div className="admin-content">
         <form className="form-tech admin-card p-4" style={{ maxWidth: 760 }} noValidate onSubmit={f.enviar(alGuardar)}>
+          {errorGeneral && <div className="alert alert-danger" role="alert">{errorGeneral}</div>}
           <div className="row">
             <div className="col-md-6">
               <Campo label="Nombre completo" maxLength={100} required {...p("nombre")} />

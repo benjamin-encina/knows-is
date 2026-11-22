@@ -1,58 +1,71 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { usuarios as usuariosBase } from "../data/usuarios";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import * as usuariosApi from "../api/usuariosApi";
+import { useAuth } from "./AuthContext";
 
 const UsuariosContext = createContext(null);
-const KEY = "knowsis_usuarios_admin";
-const KEY_REGISTRADOS = "knowsis_registrados"; // donde guarda /registro a los nuevos
 
-const leer = (clave, defecto) => {
-  try { return JSON.parse(localStorage.getItem(clave)) ?? defecto; } catch { return defecto; }
-};
+// El backend entrega nombre y apellidos por separado; la interfaz también usa el nombre completo.
+const normalizar = (u) => ({ ...u, nombreCompleto: [u.nombre, u.apellidos].filter(Boolean).join(" ") });
 
+// Lo que se envía al backend. En la edición, sin "contrasena" significa "no cambiarla".
+const paraApi = ({ nombreCompleto, ...datos }) => ({ ...datos, apellidos: null });
+
+// Usuarios del panel de administración. Solo el rol Admin puede pedirlos al backend (GET /api/usuarios).
+// Las funciones de crear, editar y eliminar son asíncronas y lanzan un ErrorApi si el backend rechaza algo
+// (correo repetido, no eliminarse a sí mismo...): la pantalla que las llama muestra el mensaje.
 export function UsuariosProvider({ children }) {
-  const [usuarios, setUsuarios] = useState(() => {
-    const guardados = leer(KEY, null);
-    return Array.isArray(guardados) ? guardados : [...usuariosBase, ...leer(KEY_REGISTRADOS, [])];
-  });
+  const { esAdmin } = useAuth();
+  const [usuarios, setUsuarios] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-  // guarda la lista cada vez que cambia
+  const recargar = useCallback(async () => {
+    if (!esAdmin) {
+      setUsuarios([]);
+      setCargando(false);
+      return;
+    }
+    setError("");
+    try {
+      const lista = await usuariosApi.listarUsuarios();
+      setUsuarios(lista.map(normalizar));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
+    }
+  }, [esAdmin]);
+
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(usuarios));
-  }, [usuarios]);
-
-  // trae a los que se registraron en /registro después de cargar la app
-  const sincronizar = () => {
-    const registrados = leer(KEY_REGISTRADOS, []);
-    setUsuarios((lista) => {
-      const nuevos = registrados.filter((r) => !lista.some((u) => String(u.id) === String(r.id)));
-      return nuevos.length ? [...lista, ...nuevos] : lista;
-    });
-  };
+    recargar();
+  }, [recargar]);
 
   const obtenerUsuario = (id) => usuarios.find((u) => String(u.id) === String(id));
 
-  const crearUsuario = (datos) => {
-    const id = usuarios.reduce((max, u) => Math.max(max, Number(u.id) || 0), 0) + 1;
-    const nuevo = { estado: "Activo", ...datos, id };
+  const crearUsuario = async (datos) => {
+    const nuevo = normalizar(await usuariosApi.crearUsuario(paraApi(datos)));
     setUsuarios((lista) => [...lista, nuevo]);
     return nuevo;
   };
 
-  const editarUsuario = (id, datos) => {
-    setUsuarios((lista) => lista.map((u) => (String(u.id) === String(id) ? { ...u, ...datos } : u)));
+  const editarUsuario = async (id, datos) => {
+    const editado = normalizar(await usuariosApi.editarUsuario(id, paraApi(datos)));
+    setUsuarios((lista) => lista.map((u) => (String(u.id) === String(id) ? editado : u)));
+    return editado;
   };
 
-  const eliminarUsuario = (id) => {
+  const eliminarUsuario = async (id) => {
+    await usuariosApi.eliminarUsuario(id);
     setUsuarios((lista) => lista.filter((u) => String(u.id) !== String(id)));
   };
 
   return (
     <UsuariosContext.Provider
-      value={{ usuarios, sincronizar, obtenerUsuario, crearUsuario, editarUsuario, eliminarUsuario }}
+      value={{ usuarios, cargando, error, recargar, obtenerUsuario, crearUsuario, editarUsuario, eliminarUsuario }}
     >
       {children}
     </UsuariosContext.Provider>
   );
 }
 
-   export const useUsuarios = () => useContext(UsuariosContext);
+export const useUsuarios = () => useContext(UsuariosContext);

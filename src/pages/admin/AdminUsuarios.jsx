@@ -5,23 +5,28 @@ import { useUsuarios } from "../../context/UsuarioContext";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AdminUsuarios() {
-  const { usuarios, sincronizar, eliminarUsuario } = useUsuarios();
+  const { usuarios, cargando, error, recargar, eliminarUsuario } = useUsuarios();
   const { usuario: sesion } = useAuth();
   const location = useLocation();
   const [porEliminar, setPorEliminar] = useState(null);
   const [mensaje, setMensaje] = useState(location.state?.mensaje || "");
+  const [errorEliminar, setErrorEliminar] = useState("");
 
-  // trae a los usuarios que se registraron desde /registro
+  // al abrir la pantalla se pide la lista actualizada al backend
   useEffect(() => {
-    sincronizar();
+    recargar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const esMiCuenta = (u) => sesion && String(u.id) === String(sesion.id);
 
-  const confirmarEliminar = () => {
-    eliminarUsuario(porEliminar.id);
-    setMensaje(`Usuario "${porEliminar.nombre}" eliminado.`);
+  const confirmarEliminar = async () => {
+    try {
+      await eliminarUsuario(porEliminar.id);
+      setMensaje(`Usuario "${porEliminar.nombreCompleto}" eliminado.`);
+    } catch (e) {
+      setErrorEliminar(e.message); // por ejemplo: no puedes eliminar tu propia cuenta
+    }
     setPorEliminar(null);
   };
 
@@ -34,6 +39,15 @@ export default function AdminUsuarios() {
       </AdminTopbar>
 
       <div className="admin-content">
+        {(error || errorEliminar) && (
+          <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+            <span>{error || errorEliminar}</span>
+            {errorEliminar && (
+              <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setErrorEliminar("")}></button>
+            )}
+          </div>
+        )}
+
         {mensaje && (
           <div className="alert alert-success d-flex justify-content-between align-items-center" role="alert">
             <span><i className="bi bi-check-circle me-1"></i> {mensaje}</span>
@@ -53,7 +67,12 @@ export default function AdminUsuarios() {
               </tr>
             </thead>
             <tbody>
-              {usuarios.length === 0 && (
+              {cargando && (
+                <tr>
+                  <td colSpan={5} className="text-center text-muted py-4">Cargando usuarios…</td>
+                </tr>
+              )}
+              {!cargando && usuarios.length === 0 && (
                 <tr>
                   <td colSpan={5} className="text-center text-muted py-4">
                     No hay usuarios. Crea el primero con "Nuevo usuario".
@@ -65,7 +84,7 @@ export default function AdminUsuarios() {
                 return (
                   <tr key={u.id}>
                     <td>
-                      {u.nombre}
+                      {u.nombreCompleto}
                       {esMiCuenta(u) && <span className="small text-muted ms-2">(tú)</span>}
                     </td>
                     <td className="text-muted">{u.correo}</td>
@@ -104,7 +123,7 @@ export default function AdminUsuarios() {
                   <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setPorEliminar(null)}></button>
                 </div>
                 <div className="modal-body">
-                  ¿Seguro que quieres eliminar a <strong>{porEliminar.nombre}</strong>? Esta acción no se puede deshacer.
+                  ¿Seguro que quieres eliminar a <strong>{porEliminar.nombreCompleto}</strong>? Esta acción no se puede deshacer.
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-tech-outline" onClick={() => setPorEliminar(null)}>Cancelar</button>
