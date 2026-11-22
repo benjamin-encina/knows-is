@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AdminUsuarioForm from "../../pages/admin/AdminUsuarioForm";
@@ -37,8 +37,12 @@ const renderFormulario = (ruta = "/admin/usuarios/nuevo") =>
   );
 
 describe("Formulario de Usuario (admin)", () => {
-  beforeEach(() => vi.clearAllMocks());
-
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // las funciones del contexto ahora son asíncronas (hablan con la API)
+    crearUsuarioMock.mockResolvedValue({});
+    editarUsuarioMock.mockResolvedValue({});
+  });
   it("muestra los errores de los campos obligatorios al guardar vacío", async () => {
     const user = userEvent.setup();
     renderFormulario();
@@ -62,7 +66,7 @@ describe("Formulario de Usuario (admin)", () => {
     await user.selectOptions(screen.getByLabelText("Rol"), "Alumno");
     await user.click(screen.getByRole("button", { name: "Guardar usuario" }));
 
-    expect(crearUsuarioMock).toHaveBeenCalledWith({
+    expect(crearUsuarioMock).toHaveBeenCalledWith({ 
       nombre: "Nuevo Usuario",
       correo: "nuevo@knowsis.cl",
       telefono: "",
@@ -91,8 +95,8 @@ describe("Formulario de Usuario (admin)", () => {
       rol: "Admin",
       estado: "Activo",
     });
-    expect(navigateMock).toHaveBeenCalledWith("/admin/usuarios", {
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/admin/usuarios", {
       state: { mensaje: "Usuario actualizado correctamente." },
-    });
+    }));
   });
 });

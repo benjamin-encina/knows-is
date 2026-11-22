@@ -1,10 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import SinPermiso from "./pages/SinPermiso";
 import PublicLayout from "./layouts/PublicLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import RutaAdmin from "./components/RutaAdmin";
 import RutaUsuario from "./components/RutaUsuario";
 import AdminLayout from "./layouts/AdminLayout";
+
 
 import Home from "./pages/Home";
 import Cursos from "./pages/Cursos";
@@ -45,7 +47,7 @@ export default function App() {
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/mis-cursos" element={<Navigate to="/perfil" replace />} />
         </Route>
-
+        <Route path="/sin-permiso" element={<SinPermiso />} />
         <Route path="*" element={<NoEncontrada />} />
       </Route>
 

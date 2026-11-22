@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import AdminTopbar from "../../components/AdminTopbar";
 import { useCursos } from "../../context/CursosContext";
@@ -10,13 +9,7 @@ import { roles } from "../../data/usuarios";
 // así que se actualiza solo cuando se crea, edita o elimina algo.
 export default function AdminHome() {
   const { cursos } = useCursos();
-  const { usuarios, sincronizar } = useUsuarios();
-
-  // trae a los que se registraron desde /registro
-  useEffect(() => {
-    sincronizar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { usuarios } = useUsuarios();
 
   const enAlerta = cursos.filter(cupoEnAlerta);
   const cuposTotales = cursos.reduce((suma, c) => suma + c.cupos, 0);
