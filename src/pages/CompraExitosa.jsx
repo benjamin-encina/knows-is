@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCompras } from "../context/ComprasContext";
 import { formatearPrecio } from "../utils/formato";
@@ -5,8 +6,30 @@ import { describirOrden } from "../utils/pagos";
 
 export default function CompraExitosa() {
   const { id } = useParams();
-  const { obtenerOrden } = useCompras();
-  const orden = obtenerOrden(id);
+  const { obtenerOrden, buscarOrden } = useCompras();
+  // la orden recién creada ya está en el contexto; si se recargó la página se pide al backend
+  const [orden, setOrden] = useState(() => obtenerOrden(id) ?? null);
+  const [cargando, setCargando] = useState(!orden);
+
+  useEffect(() => {
+    if (orden?.id === id) return;
+    let activo = true;
+    setCargando(true);
+    buscarOrden(id)
+      .then((o) => { if (activo) setOrden(o ?? null); })
+      .catch(() => { if (activo) setOrden(null); })
+      .finally(() => { if (activo) setCargando(false); });
+    return () => { activo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  if (cargando) {
+    return (
+      <section className="section">
+        <div className="container text-center text-muted">Cargando orden…</div>
+      </section>
+    );
+  }
 
   if (!orden) {
     return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminTopbar from "../../components/AdminTopbar";
 import ResumenCupos from "../../components/ResumenCupos";
 import { useCompras } from "../../context/ComprasContext";
@@ -8,8 +8,28 @@ import { describirOrden } from "../../utils/pagos";
 const formatearFechaHora = (iso) => new Date(iso).toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" });
 
 export default function AdminOrdenes() {
-  const { todasLasOrdenes } = useCompras();
+  const { todasLasOrdenes, cargandoOrdenes, errorOrdenes, cargarOrdenes, anularOrden } = useCompras();
   const [busqueda, setBusqueda] = useState("");
+  const [porAnular, setPorAnular] = useState(null); // id de la orden que espera confirmación
+  const [mensaje, setMensaje] = useState("");
+  const [errorAnular, setErrorAnular] = useState("");
+
+  // Las órdenes vienen del backend (GET /api/ordenes, solo Admin)
+  useEffect(() => {
+    cargarOrdenes();
+  }, [cargarOrdenes]);
+
+  const confirmarAnular = async (id) => {
+    setMensaje("");
+    setErrorAnular("");
+    try {
+      await anularOrden(id);
+      setMensaje(`Orden ${id} anulada. Sus cupos quedaron libres.`);
+    } catch (e) {
+      setErrorAnular(e.message);
+    }
+    setPorAnular(null);
+  };
 
   const texto = busqueda.trim().toLowerCase();
   const filtradas = todasLasOrdenes.filter((orden) => {
@@ -19,7 +39,8 @@ export default function AdminOrdenes() {
     return campos.filter(Boolean).join(" ").toLowerCase().includes(texto);
   });
 
-  const ingresos = todasLasOrdenes.reduce((suma, o) => suma + o.total, 0);
+  // ingresos = solo órdenes pagadas (las anuladas no suman)
+  const ingresos = todasLasOrdenes.filter((o) => o.estado === "Pagada").reduce((suma, o) => suma + o.total, 0);
   const alumnos = new Set(todasLasOrdenes.map((o) => o.usuarioId)).size;
 
   return (
@@ -28,6 +49,10 @@ export default function AdminOrdenes() {
 
       <div className="admin-content">
         <ResumenCupos />
+
+        {errorOrdenes && <div className="alert alert-danger" role="alert">{errorOrdenes}</div>}
+        {errorAnular && <div className="alert alert-danger" role="alert">{errorAnular}</div>}
+        {mensaje && <div className="alert alert-success" role="status">{mensaje}</div>}
 
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
           <p className="small text-muted mb-0">
@@ -58,13 +83,16 @@ export default function AdminOrdenes() {
                   <th>Total</th>
                   <th>Forma de pago</th>
                   <th>Estado</th>
+                  <th className="text-end">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filtradas.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="text-center text-muted py-4">
-                      {todasLasOrdenes.length === 0 ? "Aún no hay órdenes de compra." : "Ninguna orden coincide con la búsqueda."}
+                    <td colSpan={9} className="text-center text-muted py-4">
+                      {cargandoOrdenes
+                        ? "Cargando órdenes…"
+                        : todasLasOrdenes.length === 0 ? "Aún no hay órdenes de compra." : "Ninguna orden coincide con la búsqueda."}
                     </td>
                   </tr>
                 )}
@@ -84,6 +112,23 @@ export default function AdminOrdenes() {
                     </td>
                     <td className="small">{describirOrden(orden)}</td>
                     <td>{orden.estado}</td>
+                    <td className="text-end text-nowrap">
+                      {orden.estado === "Pagada" && porAnular !== orden.id && (
+                        <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => setPorAnular(orden.id)}>
+                          Anular
+                        </button>
+                      )}
+                      {porAnular === orden.id && (
+                        <>
+                          <button type="button" className="btn btn-sm btn-danger me-1" onClick={() => confirmarAnular(orden.id)}>
+                            Confirmar
+                          </button>
+                          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setPorAnular(null)}>
+                            Cancelar
+                          </button>
+                        </>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

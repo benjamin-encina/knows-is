@@ -9,7 +9,7 @@ import { useCompras } from "../context/ComprasContext";
 import { formatearPrecio } from "../utils/formato";
 import {
   DESCUENTO_PRIMERA_CUOTA, TARJETA_APROBADA_DEMO, TARJETA_RECHAZADA_DEMO,
-  describirPlan, formatearTarjeta, formatearVencimiento, planPago, procesarPago, soloDigitos,
+  describirPlan, formatearTarjeta, formatearVencimiento, planPago,
 } from "../utils/pagos";
 import { formatearRut, validarRut } from "../utils/rut";
 import { validarCorreo, validarTelefono, validarTextoObligatorio } from "../utils/validaciones";
@@ -75,26 +75,32 @@ export default function Checkout() {
   const alEnviar = async (v) => {
     setErrorPago("");
 
-    // 1) Revisar cupos y duplicados ANTES de cobrar
+    // 1) Aviso rápido en el navegador (cupos y duplicados). La validación oficial la hace el servidor.
     const problema = validarCarrito();
     if (problema) { setErrorPago(problema); return; }
 
-    // 2) Cobrar (simulado)
+    // 2) El servidor valida, cobra (pago simulado) y guarda la orden en una sola operación.
+    //    Los datos de la tarjeta viajan solo en esta petición: el navegador no los guarda.
     setProcesando(true);
-    const pago = await procesarPago({ numero: v.tarjetaNumero });
-    if (!pago.ok) { setErrorPago(pago.error); setProcesando(false); return; }
-
-    // 3) Registrar la adquisición. Del número de tarjeta solo se conservan los últimos 4 dígitos.
     compraHecha.current = true;
-    const res = confirmarCompra({
+    const res = await confirmarCompra({
       facturacion: {
         nombre: v.nombre.trim(), rut: v.rut, correo: v.correo.trim(),
         telefono: v.telefono.trim(), direccion: v.direccion.trim(),
       },
       cuotas: Number(v.cuotas),
-      pago: { medio: `Tarjeta •••• ${soloDigitos(v.tarjetaNumero).slice(-4)}`, referencia: pago.referencia },
+      tarjeta: {
+        numero: v.tarjetaNumero, titular: v.tarjetaTitular.trim(),
+        vencimiento: v.vencimiento, cvv: v.cvv,
+      },
     });
-    if (!res.ok) { compraHecha.current = false; setErrorPago(res.error); setProcesando(false); return; }
+    if (!res.ok) {
+      // mensaje del backend: ya inscrito, sin cupos, pago rechazado, RUT inválido...
+      compraHecha.current = false;
+      setErrorPago(res.error);
+      setProcesando(false);
+      return;
+    }
     navigate(`/compra/exito/${res.orden.id}`, { replace: true });
   };
 
@@ -169,6 +175,9 @@ export default function Checkout() {
                 )}
               </button>
               <p className="text-muted small text-center mt-2 mb-0">{describirPlan(plan)}</p>
+              <p className="text-muted small text-center mt-1 mb-0">
+                Vista previa: el total oficial lo calcula el servidor al confirmar el pago.
+              </p>
             </ResumenOrden>
           </div>
         </div>
