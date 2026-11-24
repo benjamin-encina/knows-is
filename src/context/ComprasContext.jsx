@@ -1,75 +1,114 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useCarrito } from "./CarritoContext";
-import { planPago } from "../utils/pagos";
+import { useCursos } from "./CursosContext";
+import {
+  anularOrden as anularOrdenApi,
+  crearOrden,
+  listarMisOrdenes,
+  listarOrdenes,
+  obtenerOrden as obtenerOrdenApi,
+  obtenerResumenCupos,
+} from "../api/ordenesApi";
 
-// Órdenes de compra (adquisiciones). Una orden guarda una "foto" de los cursos al momento
-// de pagar (nombre, precio...), así el historial no cambia si el admin edita o borra el curso.
-// Persiste en localStorage. NUNCA se guardan datos de tarjeta, solo los últimos 4 dígitos.
+// Órdenes de compra (frente C). Ahora TODO vive en el backend (/api/ordenes):
+// - El servidor valida cupos, "ya inscrito", RUT y el pago, y calcula el total oficial.
+// - Aquí solo se guardan en memoria las órdenes que devuelve la API (nada en localStorage).
+// - Los datos de tarjeta se envían una sola vez al crear la orden y nunca se guardan en el navegador.
 //
-// CUPOS: curso.cupos son los cupos TOTALES. Los OCUPADOS se calculan contando los cursos de
-// las órdenes pagadas, y los DISPONIBLES son totales - ocupados. Al ser un valor derivado,
-// no hay que "descontar" nada: cada compra nueva actualiza el conteo sola.
+// CUPOS: los calcula el backend. Cada curso trae cuposOcupados y cuposDisponibles, y el admin
+// pide el resumen a GET /api/admin/cupos. Después de comprar o anular se recargan los cursos.
 const ComprasContext = createContext(null);
-const KEY_ORDENES = "knowsis_ordenes";
 
-const leer = () => {
-  try {
-    const guardado = JSON.parse(localStorage.getItem(KEY_ORDENES));
-    return Array.isArray(guardado) ? guardado : [];
-  } catch {
-    return [];
-  }
-};
-
-const masReciente = (a, b) => b.fecha.localeCompare(a.fecha);
+const masReciente = (a, b) => String(b.fecha).localeCompare(String(a.fecha));
 
 export function ComprasProvider({ children }) {
   const { usuario } = useAuth();
-  const { items, total: subtotal, vaciar } = useCarrito();
-  const [ordenes, setOrdenes] = useState(leer);
+  const { items, vaciar } = useCarrito();
+  const { obtenerCurso, recargar: recargarCursos } = useCursos();
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(KEY_ORDENES, JSON.stringify(ordenes));
-    } catch {
-      /* sin almacenamiento disponible */
+  const [misOrdenes, setMisOrdenes] = useState([]);
+  const [cargandoMias, setCargandoMias] = useState(false);
+  const [errorMias, setErrorMias] = useState("");
+
+  const [ordenes, setOrdenes] = useState([]);          // todas (solo admin)
+  const [cargandoOrdenes, setCargandoOrdenes] = useState(false);
+  const [errorOrdenes, setErrorOrdenes] = useState("");
+
+  const [resumenCupos, setResumenCupos] = useState(null);
+  const [errorCupos, setErrorCupos] = useState("");
+
+  const recargarMisOrdenes = useCallback(async () => {
+    if (!usuario) {
+      setMisOrdenes([]);
+      return;
     }
-  }, [ordenes]);
+    setCargandoMias(true);
+    setErrorMias("");
+    try {
+      setMisOrdenes(await listarMisOrdenes());
+    } catch (e) {
+      setErrorMias(e.message);
+    } finally {
+      setCargandoMias(false);
+    }
+  }, [usuario]);
 
-  // Si alguien compra en otra pestaña, esta se actualiza sola (útil con el admin abierto aparte)
+  // Al iniciar o cambiar la sesión se piden las órdenes del usuario
   useEffect(() => {
-    const alCambiar = (e) => {
-      if (e.key === KEY_ORDENES) setOrdenes(leer());
-    };
-    window.addEventListener("storage", alCambiar);
-    return () => window.removeEventListener("storage", alCambiar);
+    recargarMisOrdenes();
+  }, [recargarMisOrdenes]);
+
+  // ---------------------------------------------------------------- admin
+  const cargarOrdenes = useCallback(async () => {
+    setCargandoOrdenes(true);
+    setErrorOrdenes("");
+    try {
+      setOrdenes(await listarOrdenes());
+    } catch (e) {
+      setErrorOrdenes(e.message);
+    } finally {
+      setCargandoOrdenes(false);
+    }
   }, []);
 
+  const cargarResumenCupos = useCallback(async () => {
+    setErrorCupos("");
+    try {
+      setResumenCupos(await obtenerResumenCupos());
+    } catch (e) {
+      setErrorCupos(e.message);
+    }
+  }, []);
+
+  /** Anula una orden (solo Admin). Lanza ErrorApi si el backend la rechaza. */
+  const anularOrden = async (id) => {
+    const anulada = await anularOrdenApi(id);
+    setOrdenes((lista) => lista.map((o) => (o.id === id ? anulada : o)));
+    setMisOrdenes((lista) => lista.map((o) => (o.id === id ? anulada : o)));
+    // el cupo se libera en el servidor: se actualizan los contadores
+    cargarResumenCupos();
+    recargarCursos?.();
+    return anulada;
+  };
+
+  // ---------------------------------------------------------------- vista del usuario
+  const ordenesUsuario = useMemo(() => [...misOrdenes].sort(masReciente), [misOrdenes]);
   const todasLasOrdenes = useMemo(() => [...ordenes].sort(masReciente), [ordenes]);
 
-  // órdenes del usuario con sesión iniciada
-  const ordenesUsuario = useMemo(
-    () => (usuario ? todasLasOrdenes.filter((o) => o.usuarioId === usuario.id) : []),
-    [todasLasOrdenes, usuario]
-  );
+  // Cupos que informa el backend en cada curso (cuposOcupados / cuposDisponibles)
+  const ocupadosDe = (cursoId) => obtenerCurso(cursoId)?.cuposOcupados ?? 0;
+  const disponiblesDe = (curso) =>
+    Math.max(0, curso.cuposDisponibles ?? curso.cupos - (curso.cuposOcupados ?? 0));
 
-  // { idCurso: cantidad de cupos ocupados }
-  const ocupados = useMemo(() => {
-    const conteo = {};
-    ordenes
-      .filter((o) => o.estado === "Pagada")
-      .forEach((o) => o.items.forEach((i) => { conteo[i.cursoId] = (conteo[i.cursoId] || 0) + 1; }));
-    return conteo;
-  }, [ordenes]);
-
-  const ocupadosDe = (cursoId) => ocupados[cursoId] || 0;
-  const disponiblesDe = (curso) => Math.max(0, curso.cupos - ocupadosDe(curso.id));
-
+  // Inscrito = el curso está en una orden Pagada (una orden Anulada libera el curso)
   const yaAdquirido = (cursoId) =>
-    ordenesUsuario.some((o) => o.items.some((i) => i.cursoId === cursoId));
+    ordenesUsuario.some(
+      (o) => o.estado === "Pagada" && o.items.some((i) => String(i.cursoId) === String(cursoId))
+    );
 
-  // Devuelve un mensaje de error si el curso no se puede comprar, o "" si está todo bien
+  // Revisión previa en el navegador, solo para avisar antes de pagar.
+  // La validación que vale es la del servidor al crear la orden.
   const validarItem = (curso) => {
     if (!curso) return "Este curso ya no está disponible.";
     if (yaAdquirido(curso.id)) return "Ya estás inscrito en este curso.";
@@ -77,7 +116,6 @@ export function ComprasProvider({ children }) {
     return "";
   };
 
-  // Revisa todo el carrito antes de cobrar
   const validarCarrito = () => {
     for (const curso of items) {
       const problema = validarItem(curso);
@@ -86,51 +124,42 @@ export function ComprasProvider({ children }) {
     return "";
   };
 
-  const obtenerOrden = (id) => ordenesUsuario.find((o) => o.id === id);
+  // Busca primero entre las órdenes ya cargadas
+  const obtenerOrden = (id) =>
+    ordenesUsuario.find((o) => o.id === id) ?? todasLasOrdenes.find((o) => o.id === id);
 
-  // Crea la orden y vacía el carrito. Se llama DESPUÉS de que el pago fue aprobado.
-  // Los cupos ocupados suben solos porque se calculan desde las órdenes.
-  const confirmarCompra = ({ facturacion, cuotas, pago }) => {
+  /** Pide la orden al backend (dueño o Admin). Útil si se recarga la página de éxito. */
+  const buscarOrden = async (id) => obtenerOrden(id) ?? obtenerOrdenApi(id);
+
+  /**
+   * Crea la orden en el servidor: { facturacion, cuotas, tarjeta }.
+   * El servidor cobra (pago simulado), calcula el total y devuelve la orden oficial.
+   * Devuelve { ok: true, orden } o { ok: false, error } con el mensaje del backend
+   * (ya inscrito, sin cupos, pago rechazado, RUT inválido...).
+   */
+  const confirmarCompra = async ({ facturacion, cuotas, tarjeta }) => {
     if (!usuario) return { ok: false, error: "Debes iniciar sesión para comprar." };
     if (items.length === 0) return { ok: false, error: "Tu carrito está vacío." };
-    const problema = validarCarrito();
-    if (problema) return { ok: false, error: problema };
 
-    const plan = planPago(subtotal, cuotas);
-    const ultimoNumero = ordenes.reduce((max, o) => Math.max(max, Number(o.id.replace("KS-", "")) || 0), 0);
-    const orden = {
-      id: `KS-${String(ultimoNumero + 1).padStart(5, "0")}`,
-      usuarioId: usuario.id,
-      fecha: new Date().toISOString(),
-      items: items.map((c) => ({
-        cursoId: c.id,
-        codigo: c.codigo,
-        nombre: c.nombre,
-        instructor: c.instructor,
-        categoria: c.categoria,
-        precio: c.precio,
-      })),
-      subtotal: plan.subtotal,
-      descuento: plan.descuento,
-      total: plan.total, // lo que efectivamente paga (subtotal - descuento)
-      cuotas: plan.cuotas,
-      primeraCuota: plan.primeraCuota,
-      valorCuota: plan.valorCuota,
-      facturacion, // { nombre, correo, telefono, rut, direccion }
-      pago, // { medio: "Tarjeta •••• 4242", referencia: "PAY-..." }
-      estado: "Pagada",
-    };
-
-    setOrdenes((lista) => [...lista, orden]);
-    vaciar();
-    return { ok: true, orden };
+    try {
+      const orden = await crearOrden({ cursoIds: items.map((c) => c.id), cuotas, facturacion, tarjeta });
+      setMisOrdenes((lista) => [orden, ...lista.filter((o) => o.id !== orden.id)]);
+      vaciar();
+      recargarCursos?.(); // los cupos ocupados cambiaron en el servidor
+      return { ok: true, orden };
+    } catch (e) {
+      return { ok: false, error: e.message, estado: e.estado };
+    }
   };
 
   return (
     <ComprasContext.Provider
       value={{
-        todasLasOrdenes, ordenesUsuario, ocupadosDe, disponiblesDe,
-        yaAdquirido, validarItem, validarCarrito, obtenerOrden, confirmarCompra,
+        ordenesUsuario, cargandoMias, errorMias, recargarMisOrdenes,
+        todasLasOrdenes, cargandoOrdenes, errorOrdenes, cargarOrdenes, anularOrden,
+        resumenCupos, errorCupos, cargarResumenCupos,
+        ocupadosDe, disponiblesDe, yaAdquirido, validarItem, validarCarrito,
+        obtenerOrden, buscarOrden, confirmarCompra,
       }}
     >
       {children}

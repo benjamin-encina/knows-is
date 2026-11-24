@@ -1,17 +1,23 @@
-import { useCursos } from "../context/CursosContext";
+import { useEffect } from "react";
 import { useCompras } from "../context/ComprasContext";
-import { cupoEnAlerta } from "../data/cursos";
 
-// Contador de cupos del panel admin: cuántos están ocupados ahora, cuántos quedan y cuántos
-// cursos tienen cupo crítico. Se recalcula solo cada vez que un usuario adquiere un curso.
+// Contador de cupos del panel admin. Los números los calcula el backend (GET /api/admin/cupos):
+// ocupados = cursos en órdenes pagadas, disponibles = totales − ocupados, y cursos con cupo crítico.
 export default function ResumenCupos() {
-  const { cursos } = useCursos();
-  const { ocupadosDe } = useCompras();
+  const { resumenCupos: r, errorCupos, cargarResumenCupos } = useCompras();
 
-  const totales = cursos.reduce((suma, c) => suma + c.cupos, 0);
-  const ocupados = cursos.reduce((suma, c) => suma + Math.min(ocupadosDe(c.id), c.cupos), 0);
-  const criticos = cursos.filter((c) => cupoEnAlerta(c, ocupadosDe(c.id))).length;
-  const porcentaje = totales === 0 ? 0 : Math.round((ocupados / totales) * 100);
+  useEffect(() => {
+    cargarResumenCupos();
+  }, [cargarResumenCupos]);
+
+  if (errorCupos) {
+    return <div className="alert alert-danger mb-4" role="alert">No se pudo cargar el resumen de cupos: {errorCupos}</div>;
+  }
+  if (!r) {
+    return <div className="admin-card p-4 mb-4 text-muted">Cargando cupos…</div>;
+  }
+
+  const porcentaje = r.cuposTotales === 0 ? 0 : Math.round((r.cuposOcupados / r.cuposTotales) * 100);
 
   return (
     <div className="admin-card p-4 mb-4">
@@ -19,19 +25,19 @@ export default function ResumenCupos() {
         <div className="col-6 col-md-3">
           <div className="text-muted small">Cupos ocupados</div>
           <div className="fs-2 fw-bold" aria-live="polite">
-            {ocupados}
-            <span className="fs-6 text-muted fw-normal"> / {totales}</span>
+            {r.cuposOcupados}
+            <span className="fs-6 text-muted fw-normal"> / {r.cuposTotales}</span>
           </div>
         </div>
         <div className="col-6 col-md-3">
           <div className="text-muted small">Cupos disponibles</div>
-          <div className="fs-2 fw-bold">{totales - ocupados}</div>
+          <div className="fs-2 fw-bold">{r.cuposDisponibles}</div>
         </div>
         <div className="col-6 col-md-3">
           <div className="text-muted small">Cursos con cupo crítico</div>
           <div className="fs-2 fw-bold">
-            {criticos > 0 && <span className="status-dot status-warn"></span>}
-            {criticos}
+            {r.cursosConCupoCritico > 0 && <span className="status-dot status-warn"></span>}
+            {r.cursosConCupoCritico}
           </div>
         </div>
         <div className="col-6 col-md-3">

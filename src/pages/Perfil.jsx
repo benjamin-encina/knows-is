@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCompras } from "../context/ComprasContext";
@@ -17,10 +18,16 @@ const iniciales = (nombre) =>
 // (La ruta está protegida con RutaUsuario, por eso aquí siempre hay un usuario.)
 export default function Perfil() {
   const { usuario, esAdmin } = useAuth();
-  const { ordenesUsuario } = useCompras();
+  const { ordenesUsuario, cargandoMias, errorMias, recargarMisOrdenes } = useCompras();
   const { obtenerCurso } = useCursos();
 
-  const adquiridos = ordenesUsuario.flatMap((orden) =>
+  // Las órdenes vienen del backend (GET /api/ordenes/mias): se piden de nuevo al abrir el perfil
+  useEffect(() => {
+    recargarMisOrdenes();
+  }, [recargarMisOrdenes]);
+
+  // Mis cursos = ítems de órdenes Pagadas (una orden Anulada ya no inscribe al alumno)
+  const adquiridos = ordenesUsuario.filter((orden) => orden.estado === "Pagada").flatMap((orden) =>
     orden.items.map((item) => ({ ...item, fecha: orden.fecha, ordenId: orden.id }))
   );
 
@@ -79,7 +86,10 @@ export default function Perfil() {
 
           <div className="col-lg-8">
             <h2 className="h5 mb-3">Mis cursos</h2>
-            {adquiridos.length === 0 ? (
+            {errorMias && <div className="alert alert-danger" role="alert">{errorMias}</div>}
+            {cargandoMias && ordenesUsuario.length === 0 ? (
+              <div className="admin-card p-4 text-center text-muted">Cargando tus cursos…</div>
+            ) : adquiridos.length === 0 ? (
               <div className="admin-card p-4 text-center">
                 <i className="bi bi-mortarboard display-5 text-muted"></i>
                 <p className="fw-semibold mt-2 mb-1">Aún no tienes cursos</p>

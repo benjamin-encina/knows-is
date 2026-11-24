@@ -1,6 +1,6 @@
 /* ============================================================
    Utilidades de pago (SIMULADO: no se realiza ningún cobro real).
-   Reglas de la demostración:
+   El cobro lo simula el backend con estas mismas reglas:
    - Cualquier tarjeta con número válido (algoritmo de Luhn) es aprobada.
    - La tarjeta 4000 0000 0000 0002 es rechazada, para probar el error.
    - El número completo y el CVV NUNCA se guardan: solo los últimos 4 dígitos.
@@ -78,20 +78,5 @@ export function describirOrden(orden) {
   return describirPlan(orden);
 }
 
-// Simula la respuesta de la pasarela de pago (tarda ~1,5 s)
-export function procesarPago({ numero }) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const digitos = soloDigitos(numero);
-      if (digitos === soloDigitos(TARJETA_RECHAZADA_DEMO)) {
-        resolve({ ok: false, error: "El banco rechazó el pago. Prueba con otra tarjeta." });
-        return;
-      }
-      resolve({
-        ok: true,
-        referencia: `PAY-${Date.now().toString(36).toUpperCase()}`,
-        ultimos4: digitos.slice(-4),
-      });
-    }, 1500);
-  });
-}
+// El cobro simulado ya no se hace en el navegador: lo hace el backend al crear la orden
+// (POST /api/ordenes). Aquí quedan solo las utilidades de formato, Luhn y la vista previa del plan.
