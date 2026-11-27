@@ -129,7 +129,7 @@ export default function AdminHome() {
                   {recientes.map((u) => (
                     <tr key={u.id}>
                       <td>
-                        {u.nombre}
+                        {u.nombreCompleto}
                         <div className="small text-muted">{u.correo}</div>
                       </td>
                       <td className="text-end">

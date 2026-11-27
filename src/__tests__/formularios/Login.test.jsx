@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Login from "../../pages/Login";
@@ -30,7 +30,7 @@ describe("Formulario de Login", () => {
 
   it("con credenciales válidas llama a login y redirige según el rol", async () => {
     const user = userEvent.setup();
-    loginMock.mockReturnValue({ ok: true, usuario: { rol: "Admin" } });
+    loginMock.mockResolvedValue({ ok: true, usuario: { rol: "Admin" } });
     renderLogin();
 
     await user.type(screen.getByLabelText("Correo"), "benjamin@knowsis.cl");
@@ -38,19 +38,19 @@ describe("Formulario de Login", () => {
     await user.click(screen.getByRole("button", { name: "Acceder" }));
 
     expect(loginMock).toHaveBeenCalledWith("benjamin@knowsis.cl", "1234");
-    expect(navigateMock).toHaveBeenCalledWith("/admin", { replace: true });
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/admin", { replace: true }));
   });
 
   it("muestra el error general cuando las credenciales son incorrectas", async () => {
     const user = userEvent.setup();
-    loginMock.mockReturnValue({ ok: false, error: "Correo o contraseña incorrectos." });
+    loginMock.mockResolvedValue({ ok: false, error: "Correo o contraseña incorrectos." });
     renderLogin();
 
     await user.type(screen.getByLabelText("Correo"), "alumno@knowsis.cl");
     await user.type(screen.getByLabelText("Contraseña"), "9999");
     await user.click(screen.getByRole("button", { name: "Acceder" }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Correo o contraseña incorrectos.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Correo o contraseña incorrectos.");
     expect(navigateMock).not.toHaveBeenCalled();
   });
 });

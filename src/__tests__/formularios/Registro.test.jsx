@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Registro from "../../pages/Registro";
@@ -46,7 +46,7 @@ describe("Formulario de Registro", () => {
 
   it("habilita las comunas según la región y registra al usuario con datos válidos", async () => {
     const user = userEvent.setup();
-    registrarMock.mockReturnValue({ ok: true });
+    registrarMock.mockResolvedValue({ ok: true });
     renderRegistro();
 
     // la comuna depende de la región elegida
@@ -65,7 +65,7 @@ describe("Formulario de Registro", () => {
     await user.click(screen.getByRole("button", { name: "Registrarme" }));
 
     expect(registrarMock).toHaveBeenCalledWith({
-      nombre: "Ana Pérez Soto",
+      nombre: "Ana",
       apellidos: "Pérez Soto",
       correo: "ana@knowsis.cl",
       contrasena: "Abcd123#",
@@ -74,6 +74,6 @@ describe("Formulario de Registro", () => {
       comuna: "Chillán",
       direccion: "Calle Falsa 123",
     });
-    expect(navigateMock).toHaveBeenCalledWith("/login", { state: { registrado: true } });
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/login", { state: { registrado: true } }));
   });
 });

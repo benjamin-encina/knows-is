@@ -39,9 +39,9 @@ export default function Registro() {
     f.setValores((v) => ({ ...v, region: e.target.value, comuna: "" }));
   };
 
-  const alEnviar = ({ confirmar, ...datos }) => {
-    // data/usuarios.js usa un solo campo "nombre": se guarda completo y también por separado
-    const res = registrar({ ...datos, nombre: `${datos.nombre.trim()} ${datos.apellidos.trim()}`, apellidos: datos.apellidos.trim() });
+  const alEnviar = async ({ confirmar, ...datos }) => {
+    // el backend recibe nombre y apellidos por separado
+    const res = await registrar({ ...datos, nombre: datos.nombre.trim(), apellidos: datos.apellidos.trim() });
     if (!res.ok) { setErrorGeneral(res.error); return; }
     navigate("/login", { state: { registrado: true } });
   };
