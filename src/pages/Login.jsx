@@ -17,8 +17,8 @@ export default function Login() {
   const [errorGeneral, setErrorGeneral] = useState("");
   const f = useFormulario({ correo: "", contrasena: "" }, validar);
 
-  const alEnviar = ({ correo, contrasena }) => {
-    const res = login(correo, contrasena);
+  const alEnviar = async ({ correo, contrasena }) => {
+    const res = await login(correo, contrasena);
     if (!res.ok) { setErrorGeneral(res.error); return; }
     const destino = location.state?.desde || (res.usuario.rol === "Admin" ? "/admin" : "/");
     navigate(destino, { replace: true });
